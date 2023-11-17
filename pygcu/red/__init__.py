@@ -23,6 +23,7 @@ class RedReturn:
 
         import pygcu
 
+        # eexample of a comment?
         Red = RedReturn()
         Exit = Red.rreturn
         Red.log("this is a log")
@@ -42,7 +43,7 @@ class RedReturn:
 
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.msgs: List[str] = []
         self._cntr: int = 0
         self._crash_file: Path = Path(".crash_detected")
