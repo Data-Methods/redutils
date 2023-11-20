@@ -15,8 +15,8 @@ from ..auth.oauth import OAuthApi
 
 class BCSApi(OAuthApi):
     def setup(self):
-        self._authorize_url = "https://odata-nextgen.bakerhillsolutions.net/token"
-        self._endpoint_url = ODataUrl(
+        self.authorize_url = "https://odata-nextgen.bakerhillsolutions.net/token"
+        self.endpoint_url = ODataUrl(
             "https://odata-nextgen.bakerhillsolutions.net/odata/"
         )
 
@@ -84,7 +84,7 @@ class BCSApi(OAuthApi):
         try:
             while True:
                 Red.log(f"Querying Page....{page}")
-                resp = self._call_api(
+                resp = self.smart_call(
                     self._main_session.get,
                     prepared_url,
                     headers={"Authorization": f"Bearer {self._api_token}"},
