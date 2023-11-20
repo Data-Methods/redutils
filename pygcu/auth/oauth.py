@@ -104,16 +104,16 @@ class OAuthApi:
 
     def __exit__(
         self,
-        exc_type: type[BaseException] | None,
-        exc_val: BaseException | None,
-        exc_tb: traceback.TracebackException | None,
+        exc_type: Optional[type[BaseException]],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[traceback.TracebackException],
     ) -> None:
         self._main_session.close()
         self._auth_session.close()
 
     def smart_call(
         self, func: Callable[..., requests.Response], url: str, **params: str
-    ) -> requests.Response | None:
+    ) -> Optional[requests.Response]:
         """Helper caller blueprint method that handles auto token refresh
 
         :param func: (callable) - python requests valid methods `[get(), post(), put(), ....]`
@@ -159,7 +159,7 @@ class OAuthApi:
             Exit(LEVEL_CRITICAL, str(e))
         return None
 
-    def refresh_token(self, sleep: bool = False) -> str | None:
+    def refresh_token(self, sleep: bool = False) -> Optional[str]:
         """Refreshes token based on set value for authorized_url and provided credentials
 
         :param sleep: (bool, defaults=False) - enforce a thread-stopping wait before refreshing

@@ -20,6 +20,14 @@ pygcu.api.snowflake module
    :undoc-members:
    :show-inheritance:
 
+pygcu.api.templates module
+--------------------------
+
+.. automodule:: pygcu.api.templates
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

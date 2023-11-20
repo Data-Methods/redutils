@@ -197,7 +197,7 @@ class Wherescape:
             Exit(LEVEL_ERROR, "Database connection not established")
 
         try:
-            cursor = self.conn.cursor()
+            cursor = self.conn.cursor()  # type: ignore
             cursor.execute(sql_query, *params)
         except Exception as e:
             Exit(LEVEL_ERROR, f"Error executing query: {e}\n{sql_query}")

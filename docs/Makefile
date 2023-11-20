@@ -20,7 +20,7 @@ help:
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 build: Makefile
-	@ sphinx-apidoc -o source/ ../pygcu 
+	sphinx-apidoc -o source/ -P ../pygcu 
 
 live: 
 	sphinx-autobuild --watch ../pygcu -b html source/ build/
