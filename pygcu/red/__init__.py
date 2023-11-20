@@ -2,7 +2,7 @@
 """
 
 from pathlib import Path
-from typing import Dict, List
+from typing import Any, Dict, List, Optional
 
 import sys
 import pyodbc
@@ -16,19 +16,22 @@ LEVEL_SUCCESS = 1
 
 class RedReturn:
     """Red logging utility class to capture output in Wherescape Red
-    Example Usage:
+    and allow easy exiting of software
 
     .. code-block:: python
         :linenos:
 
         import pygcu
 
-        # eexample of a comment?
         Red = RedReturn()
         Exit = Red.rreturn
         Red.log("this is a log")
         Red.info("this is some info")
-        Exit(LEVEL_SUCCESS, "done and return")
+
+        if do_something():
+            Exit(LEVEL_SUCCESS, "done and return")
+        else:
+            Exit(LEVEL_ERROR, "something went wrong")
 
 
 
@@ -36,7 +39,7 @@ class RedReturn:
 
         This following code will generate the following output as a string
 
-        1
+        1 # or -2 if error
         (2) done and return
         (0) this is a log
         (1) this is some info
@@ -49,12 +52,7 @@ class RedReturn:
         self._crash_file: Path = Path(".crash_detected")
 
     def _valid_code(self, code: int) -> bool:
-        """check if a valid return code
-
-        :param code: return status
-
-        :return: ``True`` if code is valid
-        """
+        """check if a valid return code"""
         if code not in (LEVEL_CRITICAL, LEVEL_ERROR, LEVEL_WARNING, LEVEL_SUCCESS):
             return False
         return True
@@ -84,8 +82,8 @@ class RedReturn:
     def rreturn(self, code: int, msg: str = "") -> None:
         """exits software with a return code
 
-        :param code: level of return, this will indicate to red whether it is pass or fail
-        :param msg: last message that will be displayed in red
+        :param code: (int) - level of return, this will indicate to red whether it is pass or fail
+        :param msg: (str) - last message that will be displayed in red
 
         :return: None
 
@@ -103,7 +101,7 @@ class RedReturn:
         self.msgs.insert(0, self.msgs[-1])
         self.msgs = self.msgs[:-1]  # cut out last element to remove duplicated value
 
-        msg: str = "\n".join(self.msgs)
+        msg = "\n".join(self.msgs)
         print(msg)
 
         if code in (LEVEL_CRITICAL, LEVEL_ERROR):
@@ -114,51 +112,64 @@ class RedReturn:
 class RedParameter:
     """container class to hold red parameters
 
-    Attributes:
-        name(str):
-            name of parameter
+    :param name: (str) - name of parameter
+    :param value: (str) - value of parameter
+    :param desc: (str, optional) - description of parameter
 
-        value(str):
-            value of parameter
 
-        desc(str):
-            description of parameter
+    .. code-block:: python
+        :linenos:
+
+        from pygcu.red import RedParameter
+
+        rp = RedParameter("FOO", "BAR", "Bar of Foo")
+
+        print(rp) # $PFOO$
+
     """
 
-    def __init__(self, name: str, value: str, desc: str):
+    def __init__(self, name: str, value: str, desc: str = "") -> None:
         self.name: str = name
         self.value: str = value
         self.desc: str = desc
 
-    def __str__(self):
-        return f"${self.name}$"
+    def __str__(self) -> str:
+        return f"$P{self.name}$"
 
 
 class Wherescape:
     """Helper class that communicates with Wherescape database
 
-    Attributes:
-        parameters (Dict[str, RedParameter]):
-            A caching system to lazily hold parameters read from red
+    :param parameters: (Dict[str, RedParameter]) - A caching system to lazily hold parameters read from Red
+    :param conn: (Connection) - pyodbc connection object
 
-        conn (Connection):
-            Object representing connection to a MSSQL server
+
+    Simple usage:
+
+    .. code-block:: python
+        :linenos:
+
+        from pygcu.red import Wherescape
+
+        db = Wherescape()
+        db.connect("DNS_For_DB")
+
+        rp = db.ws_parameter_read("Client_Loading_Time")
+        ...
+
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         # cached parameters
         self.parameters: Dict[str, RedParameter] = {}
-        self.conn = None
+        self.conn: Optional[pyodbc.Connection] = None
 
-    def connect(self, dsn: str, autocommit=True):
+    def connect(self, dsn: str, autocommit: bool = True) -> None:
         """connects to red wherescape repo database
 
-        Args:
-            dsn (str):
-                domain service name of wherescape repo
+        :param dsn: (str) - domain service name of wherescape repo
+        :param autoocommit: (str, default=True) - If True, instructs the database to commit after each SQL statement
 
-            autocommit (bool):
-                If True, instructs the database to commit after each SQL statement
         """
         # pylint: disable=c-extension-no-member
 
@@ -167,27 +178,21 @@ class Wherescape:
         except pyodbc.Error as err:
             Exit(
                 LEVEL_CRITICAL,
-                (
-                    f"Failed to connect - sql_state: {err.args[0]}",
-                    f"sql_state_description {err.args[1]}",
-                ),
+                f"Failed to connect - sql_state: {err.args[0]}\nsql_state_description {err.args[1]}",
             )
         finally:
             Exit(LEVEL_CRITICAL, "An uncaught exception occurred")
 
-    def execute(self, sql_query: str, *params):
+    def execute(self, sql_query: str, *params: Any) -> pyodbc.Cursor:
         """
         Executes a SQL query and returns any data from the result
 
-        Args:
-            sql_query (str):
-                The SQL query to execute
+        :param sql_query: (str) - sql query to execute
+        :param params: (list) - list of parameters valid for pyodbc
 
-            params (list):
-                list of parameters valid for pyodbc
         """
         # pylint: disable=broad-exception-caught
-        cursor = None
+        cursor: Optional[pyodbc.Cursor] = None
         if not self.conn:
             Exit(LEVEL_ERROR, "Database connection not established")
 
@@ -206,11 +211,10 @@ class Wherescape:
         returns with both the name and description of the parameter.
         Function is case-sensitive and will return None, if not found
 
-        Args:
-            parameter (str):
-                The parameter to query
-            refresh (bool):
-                Refreshes cache of parameter value
+
+        :params parameter: (str) - The parameter to query
+        :params refresh: (bool, default=False) - refreshes the parameter value in cache by reading from db
+
         """
 
         if self.parameters.get(parameter) and not refresh:
@@ -235,23 +239,19 @@ class Wherescape:
         self.parameters[parameter] = rp
         return rp
 
-    def ws_parameter_write(self, param: RedParameter) -> RedParameter:
+    def ws_parameter_write(self, param: RedParameter) -> None:
         """Writes a parameter to Wherescape Red.
 
         This function simply wraps the execute statement, necessary
         to write a parameter in Wherescape Red, in textwrap dedent to
         remove whitespace in the execute statement.
 
-        Args:
-            parameter (str):
-                The parameter to write to.
-            value (str):
-                The value of the written parameter.
-            comment (str):
-                The comment field to write information about the value
-                or parameter.
+        :param parameter: (str) - the parameter to write to
+        :param value: (str) - the value of the written parameter
+        :param desc: (str) - the description field to write information about the value of parameter
+
         """
-        return self.execute(
+        self.execute(
             "EXEC dbo.WsParameterWrite ?, ?, ?", (param.name, param.value, param.desc)
         )
 
