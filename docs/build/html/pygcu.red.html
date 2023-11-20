@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pygcu.red package &mdash; pygcu 2023 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=a4664895"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="pygcu.services package" href="pygcu.services.html" />
+    <link rel="prev" title="pygcu.auth package" href="pygcu.auth.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            pygcu
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">pygcu</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="pygcu.html">pygcu package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="pygcu.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="pygcu.api.html">pygcu.api package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pygcu.auth.html">pygcu.auth package</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">pygcu.red package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pygcu.services.html">pygcu.services package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pygcu.html#module-pygcu">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">pygcu</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">pygcu</a></li>
+          <li class="breadcrumb-item"><a href="pygcu.html">pygcu package</a></li>
+      <li class="breadcrumb-item active">pygcu.red package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/pygcu.red.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="pygcu-red-package">
+<h1>pygcu.red package<a class="headerlink" href="#pygcu-red-package" title="Link to this heading"></a></h1>
+<section id="module-pygcu.red">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pygcu.red" title="Link to this heading"></a></h2>
+<p>Wherescape Red specific functions, utilities, and logic.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="pygcu.red.Exit">
+<span class="sig-prename descclassname"><span class="pre">pygcu.red.</span></span><span class="sig-name descname"><span class="pre">Exit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#pygcu.red.Exit" title="Link to this definition"></a></dt>
+<dd><p>exits software with a return code</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>code</strong> – level of return, this will indicate to red whether it is pass or fail</p></li>
+<li><p><strong>msg</strong> – last message that will be displayed in red</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pygcu.red.RedParameter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pygcu.red.</span></span><span class="sig-name descname"><span class="pre">RedParameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">desc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygcu/red.html#RedParameter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pygcu.red.RedParameter" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>container class to hold red parameters</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pygcu.red.RedParameter.name">
+<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#pygcu.red.RedParameter.name" title="Link to this definition"></a></dt>
+<dd><p>name of parameter</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pygcu.red.RedParameter.value">
+<span class="sig-name descname"><span class="pre">value</span></span><a class="headerlink" href="#pygcu.red.RedParameter.value" title="Link to this definition"></a></dt>
+<dd><p>value of parameter</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pygcu.red.RedParameter.desc">
+<span class="sig-name descname"><span class="pre">desc</span></span><a class="headerlink" href="#pygcu.red.RedParameter.desc" title="Link to this definition"></a></dt>
+<dd><p>description of parameter</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pygcu.red.RedReturn">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pygcu.red.</span></span><span class="sig-name descname"><span class="pre">RedReturn</span></span><a class="reference internal" href="_modules/pygcu/red.html#RedReturn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pygcu.red.RedReturn" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Red logging utility class to capture output in Wherescape Red
+Example Usage:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span><span class="c1"># import pygcu</span>
+<span class="linenos">2</span>
+<span class="linenos">3</span><span class="c1"># Red = RedReturn()</span>
+<span class="linenos">4</span><span class="c1"># Exit = Red.rreturn</span>
+<span class="linenos">5</span><span class="c1"># Red.log(&quot;this is a log&quot;)</span>
+<span class="linenos">6</span><span class="c1"># Red.info(&quot;this is some info&quot;)</span>
+<span class="linenos">7</span><span class="c1"># Exit(LEVEL_SUCCESS, &quot;done and return&quot;)</span>
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>This following code will generate the following output as a string
+
+1
+(2) done and return
+(0) this is a log
+(1) this is some info
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="pygcu.red.RedReturn.debug">
+<span class="sig-name descname"><span class="pre">debug</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/pygcu/red.html#RedReturn.debug"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pygcu.red.RedReturn.debug" title="Link to this definition"></a></dt>
+<dd><p>helper method for debugging info</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pygcu.red.RedReturn.error">
+<span class="sig-name descname"><span class="pre">error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/pygcu/red.html#RedReturn.error"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pygcu.red.RedReturn.error" title="Link to this definition"></a></dt>
+<dd><p>helper method for error info</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pygcu.red.RedReturn.info">
+<span class="sig-name descname"><span class="pre">info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/pygcu/red.html#RedReturn.info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pygcu.red.RedReturn.info" title="Link to this definition"></a></dt>
+<dd><p>helper method for info info</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pygcu.red.RedReturn.log">
+<span class="sig-name descname"><span class="pre">log</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/pygcu/red.html#RedReturn.log"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pygcu.red.RedReturn.log" title="Link to this definition"></a></dt>
+<dd><p>logs message</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pygcu.red.RedReturn.rreturn">
+<span class="sig-name descname"><span class="pre">rreturn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/pygcu/red.html#RedReturn.rreturn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pygcu.red.RedReturn.rreturn" title="Link to this definition"></a></dt>
+<dd><p>exits software with a return code</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>code</strong> – level of return, this will indicate to red whether it is pass or fail</p></li>
+<li><p><strong>msg</strong> – last message that will be displayed in red</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pygcu.red.RedReturn.warn">
+<span class="sig-name descname"><span class="pre">warn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/pygcu/red.html#RedReturn.warn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pygcu.red.RedReturn.warn" title="Link to this definition"></a></dt>
+<dd><p>helper method for warn info</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pygcu.red.Wherescape">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pygcu.red.</span></span><span class="sig-name descname"><span class="pre">Wherescape</span></span><a class="reference internal" href="_modules/pygcu/red.html#Wherescape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pygcu.red.Wherescape" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Helper class that communicates with Wherescape database</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pygcu.red.Wherescape.parameters">
+<span class="sig-name descname"><span class="pre">parameters</span></span><a class="headerlink" href="#pygcu.red.Wherescape.parameters" title="Link to this definition"></a></dt>
+<dd><p>A caching system to lazily hold parameters read from red</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[str, <a class="reference internal" href="#pygcu.red.RedParameter" title="pygcu.red.RedParameter">RedParameter</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pygcu.red.Wherescape.conn">
+<span class="sig-name descname"><span class="pre">conn</span></span><a class="headerlink" href="#pygcu.red.Wherescape.conn" title="Link to this definition"></a></dt>
+<dd><p>Object representing connection to a MSSQL server</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Connection</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pygcu.red.Wherescape.connect">
+<span class="sig-name descname"><span class="pre">connect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dsn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">autocommit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygcu/red.html#Wherescape.connect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pygcu.red.Wherescape.connect" title="Link to this definition"></a></dt>
+<dd><p>connects to red wherescape repo database</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dsn</strong> (<em>str</em>) – domain service name of wherescape repo</p></li>
+<li><p><strong>autocommit</strong> (<em>bool</em>) – If True, instructs the database to commit after each SQL statement</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pygcu.red.Wherescape.execute">
+<span class="sig-name descname"><span class="pre">execute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sql_query</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygcu/red.html#Wherescape.execute"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pygcu.red.Wherescape.execute" title="Link to this definition"></a></dt>
+<dd><p>Executes a SQL query and returns any data from the result</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sql_query</strong> (<em>str</em>) – The SQL query to execute</p></li>
+<li><p><strong>params</strong> (<em>list</em>) – list of parameters valid for pyodbc</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pygcu.red.Wherescape.ws_parameter_read">
+<span class="sig-name descname"><span class="pre">ws_parameter_read</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parameter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refresh</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pygcu.red.RedParameter" title="pygcu.red.RedParameter"><span class="pre">RedParameter</span></a></span></span><a class="reference internal" href="_modules/pygcu/red.html#Wherescape.ws_parameter_read"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pygcu.red.Wherescape.ws_parameter_read" title="Link to this definition"></a></dt>
+<dd><p>Reads a parameter from Wherescape Red.</p>
+<p>THis function calls the built-in WsParameterRead sproc, and
+returns with both the name and description of the parameter.
+Function is case-sensitive and will return None, if not found</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>parameter</strong> (<em>str</em>) – The parameter to query</p></li>
+<li><p><strong>refresh</strong> (<em>bool</em>) – Refreshes cache of parameter value</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pygcu.red.Wherescape.ws_parameter_write">
+<span class="sig-name descname"><span class="pre">ws_parameter_write</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">param</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pygcu.red.RedParameter" title="pygcu.red.RedParameter"><span class="pre">RedParameter</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pygcu.red.RedParameter" title="pygcu.red.RedParameter"><span class="pre">RedParameter</span></a></span></span><a class="reference internal" href="_modules/pygcu/red.html#Wherescape.ws_parameter_write"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#pygcu.red.Wherescape.ws_parameter_write" title="Link to this definition"></a></dt>
+<dd><p>Writes a parameter to Wherescape Red.</p>
+<p>This function simply wraps the execute statement, necessary
+to write a parameter in Wherescape Red, in textwrap dedent to
+remove whitespace in the execute statement.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>parameter</strong> (<em>str</em>) – The parameter to write to.</p></li>
+<li><p><strong>value</strong> (<em>str</em>) – The value of the written parameter.</p></li>
+<li><p><strong>comment</strong> (<em>str</em>) – The comment field to write information about the value
+or parameter.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="pygcu.auth.html" class="btn btn-neutral float-left" title="pygcu.auth package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="pygcu.services.html" class="btn btn-neutral float-right" title="pygcu.services package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Data Methods.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
