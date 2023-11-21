@@ -21,7 +21,7 @@ class RedReturn:
     .. code-block:: python
         :linenos:
 
-        import pygcu
+        from pygcu.red import RedReturn
 
         Red = RedReturn()
         Exit = Red.rreturn
