@@ -4,7 +4,7 @@ A python based library to help with data ingestion at Global Credit Union.
 
 This is an effort to consolidate and encourage developers to use reusable code. 
 
-You can find the most up-to-date [documentation](file:///\\svrcst99\Finance and Analysis\DW\Documentation\development\pygcu\pygcu\docs\build\index.html) attached to `\\svrcst99` 
+You can find the most up-to-date `\\svrcst99\Finance and Analysis\DW\Documentation\development\pygcu\pygcu\docs\build\index.html`
 
 
 ```python
