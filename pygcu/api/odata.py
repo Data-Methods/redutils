@@ -10,21 +10,21 @@ class ODataUrl:
 
     Example Usage:
 
-    .. code-block:: python
+    ```python
+    from pygcu.api.odata import ODataUrl
 
-        from pygcu.api.odata import ODataUrl
+    url = ODataUrl("https://example/api")
 
-        url = ODataUrl("https://example/api")
+    uri = "workers"
+    params = {"$skip": 0, "$count": "true", "$filter": "UpdatedDate gt 1990-01-01}
 
-        uri = "workers"
-        params = {"$skip": 0, "$count": "true", "$filter": "UpdatedDate gt 1990-01-01}
-
-        parsed_url = url.parse(uri, params)
-        print(parsed_url)
-        # https://example/api/workers?$skip=0&$count=true&$filter=UpdatedDate gt 1990-01-01
+    parsed_url = url.parse(uri, params)
+    print(parsed_url)
+    # https://example/api/workers?$skip=0&$count=true&$filter=UpdatedDate gt 1990-01-01
+    ```
 
 
-    TODO: This class needs much building on and made better...
+    :TODO: This class needs much building on and made better...
     """
 
     def __init__(self, base_url: str) -> None:

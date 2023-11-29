@@ -18,31 +18,29 @@ class RedReturn:
     """Red logging utility class to capture output in Wherescape Red
     and allow easy exiting of software
 
-    .. code-block:: python
-        :linenos:
+    ```python
+    from pygcu.red import RedReturn
 
-        from pygcu.red import RedReturn
+    Red = RedReturn()
+    Exit = Red.rreturn
+    Red.log("this is a log")
+    Red.info("this is some info")
 
-        Red = RedReturn()
-        Exit = Red.rreturn
-        Red.log("this is a log")
-        Red.info("this is some info")
+    if do_something():
+        Exit(LEVEL_SUCCESS, "done and return")
+    else:
+        Exit(LEVEL_ERROR, "something went wrong")
 
-        if do_something():
-            Exit(LEVEL_SUCCESS, "done and return")
-        else:
-            Exit(LEVEL_ERROR, "something went wrong")
+    ```
 
+    ```
+    This following code will generate the following output as a string
 
-
-    .. code-block:: text
-
-        This following code will generate the following output as a string
-
-        1 # or -2 if error
-        (2) done and return
-        (0) this is a log
-        (1) this is some info
+    1 # or -2 if error
+    (2) done and return
+    (0) this is a log
+    (1) this is some info
+    ```
 
     """
 
@@ -117,14 +115,14 @@ class RedParameter:
     :param desc: (str, optional) - description of parameter
 
 
-    .. code-block:: python
-        :linenos:
 
-        from pygcu.red import RedParameter
+    ```python
+    from pygcu.red import RedParameter
 
-        rp = RedParameter("FOO", "BAR", "Bar of Foo")
+    rp = RedParameter("FOO", "BAR", "Bar of Foo")
 
-        print(rp) # $PFOO$
+    print(rp) # $PFOO$
+    ```
 
     """
 
@@ -140,23 +138,21 @@ class RedParameter:
 class Wherescape:
     """Helper class that communicates with Wherescape database
 
-    :param parameters: (Dict[str, RedParameter]) - A caching system to lazily hold parameters read from Red
-    :param conn: (Connection) - pyodbc connection object
+     :param parameters: (Dict[str, RedParameter]) - A caching system to lazily hold parameters read from Red
+     :param conn: (Connection) - pyodbc connection object
 
 
-    Simple usage:
+     Simple usage:
 
-    .. code-block:: python
-        :linenos:
+    ```python
+     from pygcu.red import Wherescape
 
-        from pygcu.red import Wherescape
+     db = Wherescape()
+     db.connect("DNS_For_DB")
 
-        db = Wherescape()
-        db.connect("DNS_For_DB")
-
-        rp = db.ws_parameter_read("Client_Loading_Time")
-        ...
-
+     rp = db.ws_parameter_read("Client_Loading_Time")
+     ...
+     ```
     """
 
     def __init__(self) -> None:
@@ -168,7 +164,7 @@ class Wherescape:
         """connects to red wherescape repo database
 
         :param dsn: (str) - domain service name of wherescape repo
-        :param autoocommit: (str, default=True) - If True, instructs the database to commit after each SQL statement
+        :param autocommit: (str, default=True) - If True, instructs the database to commit after each SQL statement
 
         """
         # pylint: disable=c-extension-no-member

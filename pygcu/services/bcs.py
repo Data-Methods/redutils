@@ -22,115 +22,114 @@ class BCSApi(OAuthApi, IngestionTemplate):
 
     Example Usage for getting client communication table
 
-    .. code-block:: python
+    ```python
+    from pathlib import Path
+    from datetime import date
+    from typing import Tuple
 
-        from pathlib import Path
-        from datetime import date
-        from typing import Tuple
+    import time
+    import pandas as pd
 
-        import time
-        import pandas as pd
+    from pygcu.red import (
+        Wherescape,
+        Exit,
+        Red,
+        LEVEL_SUCCESS,
+    )
+    from pygcu.services.bcs import BCSApi
+    from secret_server import SecretServer
 
-        from pygcu.red import (
-            Wherescape,
-            Exit,
-            Red,
-            LEVEL_SUCCESS,
+
+    db = Wherescape()
+    db.connect("$PRED_Database$")
+
+
+    _ENTITY_NAME = "ClientCommunications"
+    _FULL_RELOAD = db.ws_parameter_read(f"BCS_{_ENTITY_NAME}_Full_Reload")
+    _SINCE_LAST_RUN = db.ws_parameter_read(f"BCS_{_ENTITY_NAME}_LastLoad_Date")
+    _LOAD_DIR = db.ws_parameter_read("load_bcs")
+    _OUTPUT_FILE = f"{_ENTITY_NAME}_{time.strftime('%Y%m%d')}.csv"
+
+
+    class BCSClientCommunications(BCSApi):
+        __entity_name__: str = _ENTITY_NAME
+        __headers: Tuple = (
+            "ClientId",
+            "CreatedDate",
+            "Family",
+            "FamilyCode",
+            "Id",
+            "IsPrimary",
+            "Key",
+            "Type",
+            "TypeCode",
+            "UpdatedDate",
+            "Value",
+            "ClientReference_EntityKey_EntitySetName",
+            "ClientReference_EntityKey_EntityContainerName",
+            "ClientReference_EntityKey_EntityKeyValues",
+            "EntityKey_EntitySetName",
+            "EntityKey_EntityContainerName",
+            "EntityKey_EntityKeyValues",
         )
-        from pygcu.services.bcs import BCSApi
-        from secret_server import SecretServer
 
+        _today: str = date.today().strftime("%Y-%m-%d")
 
-        db = Wherescape()
-        db.connect("$PRED_Database$")
+        def pre_extract(self) -> None:
+            params = {"$skip": 0, "$count": "true"}
 
+            if _FULL_RELOAD.value == "0":
+                params["$filter"] = f"UpdatedDate gt {_SINCE_LAST_RUN.value}"
 
-        _ENTITY_NAME = "ClientCommunications"
-        _FULL_RELOAD = db.ws_parameter_read(f"BCS_{_ENTITY_NAME}_Full_Reload")
-        _SINCE_LAST_RUN = db.ws_parameter_read(f"BCS_{_ENTITY_NAME}_LastLoad_Date")
-        _LOAD_DIR = db.ws_parameter_read("load_bcs")
-        _OUTPUT_FILE = f"{_ENTITY_NAME}_{time.strftime('%Y%m%d')}.csv"
-
-
-        class BCSClientCommunications(BCSApi):
-            __entity_name__: str = _ENTITY_NAME
-            __headers: Tuple = (
-                "ClientId",
-                "CreatedDate",
-                "Family",
-                "FamilyCode",
-                "Id",
-                "IsPrimary",
-                "Key",
-                "Type",
-                "TypeCode",
-                "UpdatedDate",
-                "Value",
-                "ClientReference_EntityKey_EntitySetName",
-                "ClientReference_EntityKey_EntityContainerName",
-                "ClientReference_EntityKey_EntityKeyValues",
-                "EntityKey_EntitySetName",
-                "EntityKey_EntityContainerName",
-                "EntityKey_EntityKeyValues",
+            self.url: str = self._endpoint_url.parse(
+                self.__entity_name__,
+                params=params,
             )
 
-            _today: str = date.today().strftime("%Y-%m-%d")
-
-            def pre_extract(self) -> None:
-                params = {"$skip": 0, "$count": "true"}
-
-                if _FULL_RELOAD.value == "0":
-                    params["$filter"] = f"UpdatedDate gt {_SINCE_LAST_RUN.value}"
-
-                self.url: str = self._endpoint_url.parse(
-                    self.__entity_name__,
-                    params=params,
-                )
-
-                self.output_file: Path = Path(_LOAD_DIR.value) / _OUTPUT_FILE
+            self.output_file: Path = Path(_LOAD_DIR.value) / _OUTPUT_FILE
 
 
-            def extract(self) -> pd.DataFrame:
+        def extract(self) -> pd.DataFrame:
 
-                data = self.query(self.url)
-                if data is None:
-                    return pd.DataFrame(columns=self.__headers)
+            data = self.query(self.url)
+            if data is None:
+                return pd.DataFrame(columns=self.__headers)
 
-                df = pd.json_normalize(data, sep="_")
-                return df
+            df = pd.json_normalize(data, sep="_")
+            return df
 
-            def post_extract(self, df: pd.DataFrame):
-                df.to_csv(self.output_file, index=False, header=True)
+        def post_extract(self, df: pd.DataFrame):
+            df.to_csv(self.output_file, index=False, header=True)
 
-                Red.info(f"Writing {len(df)} records to: {self.output_file.absolute()}")
+            Red.info(f"Writing {len(df)} records to: {self.output_file.absolute()}")
 
-                if _FULL_RELOAD.value == "1":
-                    _FULL_RELOAD.value = "0"
-                    db.ws_parameter_write(_FULL_RELOAD)
-                    Red.info("Updating Full Reload parameter to 0")
+            if _FULL_RELOAD.value == "1":
+                _FULL_RELOAD.value = "0"
+                db.ws_parameter_write(_FULL_RELOAD)
+                Red.info("Updating Full Reload parameter to 0")
 
-                # update last_update time
-                _SINCE_LAST_RUN.value = self._today
-                db.ws_parameter_write(_SINCE_LAST_RUN)
-                Red.info(f"Updating last update time to: {self._today}")
-
-
-        def main():
-            ss = SecretServer()
-            sid = 7791
-
-            client_id = ss.get_password(sid, "username").strip()
-            client_secret = ss.get_password(sid, "password").strip()
-
-            with BCSClientCommunications(client_id, client_secret) as bcs:
-                bcs.run()
-
-            Exit(LEVEL_SUCCESS, "Success")
+            # update last_update time
+            _SINCE_LAST_RUN.value = self._today
+            db.ws_parameter_write(_SINCE_LAST_RUN)
+            Red.info(f"Updating last update time to: {self._today}")
 
 
-        if __name__ == "__main__":
-            main()
+    def main():
+        ss = SecretServer()
+        sid = 7791
 
+        client_id = ss.get_password(sid, "username").strip()
+        client_secret = ss.get_password(sid, "password").strip()
+
+        with BCSClientCommunications(client_id, client_secret) as bcs:
+            bcs.run()
+
+        Exit(LEVEL_SUCCESS, "Success")
+
+
+    if __name__ == "__main__":
+        main()
+    ```
 
 
     .. _OData: https://www.odata.org/
@@ -274,17 +273,3 @@ class BCSApi(OAuthApi, IngestionTemplate):
                 LEVEL_CRITICAL,
                 f"Failed to query on url: {prepared_url} with error: {traceback.format_exc()}",
             )
-
-    # def run(self):
-    #     self.pre_extract()
-    #     df = self.extract()
-    #     self.post_extract(df)
-
-    # def pre_extract(self):
-    #     raise NotImplementedError()
-
-    # def extract(self) -> pd.DataFrame:
-    #     raise NotImplementedError()
-
-    # def post_extract(self, df: pd.DataFrame):
-    #     raise NotImplementedError()

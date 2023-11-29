@@ -11,27 +11,26 @@ class IngestionTemplate:
 
     Example Usage
 
-    .. code-block:: python
-        :linenos:
+    ```python
+    import pandas as pd
 
-        import pandas as pd
+    class CustomIngestion(IngestionTemplate):
+        def pre_extract(self):
+            pass
 
-        class CustomIngestion(IngestionTemplate):
-            def pre_extract(self):
-                pass
+        def extract(self):
+            data = get_all_the_data()
+            df = pd.DataFrame(data)
+            return df
 
-            def extract(self):
-                data = get_all_the_data()
-                df = pd.DataFrame(data)
-                return df
-
-            def post_extract(self, df):
-                df.columns = ("A", "B", "C")
-                df.to_csv("mydata.csv", index=False)
+        def post_extract(self, df):
+            df.columns = ("A", "B", "C")
+            df.to_csv("mydata.csv", index=False)
 
 
-        ci = CustomIngestion()
-        ci.run()
+    ci = CustomIngestion()
+    ci.run()
+    ```
     """
 
     def run(self) -> None:

@@ -25,39 +25,39 @@ class OAuthApi:
 
     Example Usage:
 
-    .. code-block:: python
+    ```python
+    from pygcu.auth import OAuthApi
 
-        from pygcu.auth import OAuthApi
+    class ExampleDataSourceUsing(OAuthApi):
+        def setup(self):
+            self.authorize_url = "https://example.com/token"
+            self.endpoint_url = "https://example.com/api"
 
-        class ExampleDataSourceUsing(OAuthApi):
-            def setup(self):
-                self.authorize_url = "https://example.com/token"
-                self.endpoint_url = "https://example.com/api"
-
-            def get_all_the_things(self):
-                resp = self._main_session.get(
-                    "https://example.com/api/get_all_the_things",
-                    headers={"Authorization": f"Bearer {self._api_token}"}
-                )
-
-                if resp.status_code != 200:
-                    print("invalid response")
-                return resp.json()
-
-        client_id = "xxxxxxx"
-        client_secret = "xxxxxxx"
-
-        with ExampleDataSourceUsing(client_id, client_secret) as src:
-
-            # use built-in methods
-            resp = src.smart_call(
-                func=src._main_session.get,
-                url="https://example/api/get_all_the_things",
-                headers={"Authorization": f"Bearer {src._api_token}}
+        def get_all_the_things(self):
+            resp = self._main_session.get(
+                "https://example.com/api/get_all_the_things",
+                headers={"Authorization": f"Bearer {self._api_token}"}
             )
 
-            ## or.. create your own
-            resp = src.get_all_the_things()
+            if resp.status_code != 200:
+                print("invalid response")
+            return resp.json()
+
+    client_id = "xxxxxxx"
+    client_secret = "xxxxxxx"
+
+    with ExampleDataSourceUsing(client_id, client_secret) as src:
+
+        # use built-in methods
+        resp = src.smart_call(
+            func=src._main_session.get,
+            url="https://example/api/get_all_the_things",
+            headers={"Authorization": f"Bearer {src._api_token}}
+        )
+
+        ## or.. create your own
+        resp = src.get_all_the_things()
+    ```
 
     """
 
@@ -120,7 +120,7 @@ class OAuthApi:
         :param url: (str) - the completed url desired to request data from
         :param params: (**kwargs) - key-value pairs valid depending on the underlying requests method.
 
-        :returns: `Response`_
+        :return: `Response`_
 
         .. _Response: https://docs.python-requests.org/en/v1.1.0/api/#requests.Response
 
