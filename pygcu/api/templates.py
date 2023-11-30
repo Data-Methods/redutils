@@ -35,6 +35,9 @@ class IngestionTemplate:
 
     def run(self) -> None:
         """Call this method to kickstart the ingestion"""
+        self.pre_extract()
+        df: pd.DataFrame = self.extract()
+        self.post_extract(df)
 
     def pre_extract(self) -> None:
         """pre-hook logic before actual ingestion takes place, use this to set things up"""
