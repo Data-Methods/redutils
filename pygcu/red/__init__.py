@@ -176,8 +176,8 @@ class Wherescape:
                 LEVEL_CRITICAL,
                 f"Failed to connect - sql_state: {err.args[0]}\nsql_state_description {err.args[1]}",
             )
-        finally:
-            Exit(LEVEL_CRITICAL, "An uncaught exception occurred")
+        except Exception as e:
+            Exit(LEVEL_CRITICAL, f"An uncaught exception occurred: {e}")
 
     def execute(self, sql_query: str, *params: Any) -> pyodbc.Cursor:
         """
