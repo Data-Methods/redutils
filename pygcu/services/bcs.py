@@ -1,14 +1,18 @@
 import base64
 import lzma
 import pickle
+import tempfile
 import traceback
-import requests
+import time
+
 import pandas as pd
 
 from pathlib import Path
-from typing import Any, Tuple, List, Dict, Optional
+from typing import Any, Callable, Tuple, List, Dict, Optional
+from datetime import date
 
-from ..red import Red, Exit, LEVEL_CRITICAL, LEVEL_SUCCESS
+
+from ..red import Red, Exit, LEVEL_CRITICAL, LEVEL_ERROR, WherescapeProtocol
 from ..api.templates import IngestionTemplate
 from ..api.odata import ODataUrl
 from ..auth.oauth import OAuthApi
@@ -273,3 +277,79 @@ class BCSApi(OAuthApi, IngestionTemplate):
                 LEVEL_CRITICAL,
                 f"Failed to query on url: {prepared_url} with error: {traceback.format_exc()}",
             )
+
+
+class BaseEntity(BCSApi):
+    """Base Entity"""
+
+    __entity_name__: str | None = None
+    __headers__: Tuple[str, ...] = ()
+
+    def __init__(
+        self,
+        client_id: str,
+        client_secret: str,
+        repo_db: WherescapeProtocol,
+        odata_params: Dict[str, str] = {},
+        load_dir: Path = Path(tempfile.gettempdir()),
+        delta: Tuple[str, str] | None = None,
+        force_full_reload: bool = False,
+    ):
+        super().__init__(client_id, client_secret)
+
+        self._params = {"$skip": "0", "$count": "true", **odata_params}
+
+        self._today = date.today().strftime("%Y-%m-%d")
+        self._url = ODataUrl(str(self.endpoint_url)).parse(
+            str(self.__entity_name__),
+            params=self._params,
+        )
+
+        self._load_dir = load_dir
+        self._delta = delta
+        self._force_full_reload = force_full_reload
+        self._output_file = (
+            load_dir / f"{self.__entity_name__}_{time.strftime('%Y%m%d')}.csv"
+        )
+        self._repo_db = repo_db
+
+    def pre_extract(self) -> None:
+        if self._delta:
+            if self._params.get("$filter"):
+                del self._params["$filter"]
+
+            field_name, field_value = self._delta
+            self._params["$filter"] = f"{field_name} gt {field_value}"
+        else:
+            self._force_full_reload = True
+
+        if self._force_full_reload:
+            if self._params.get("$filter"):
+                del self._params["$filter"]
+
+    def extract(
+        self, apply_func: Callable[[pd.DataFrame], pd.DataFrame] | None = None
+    ) -> pd.DataFrame:
+        data = self.query(self._url)
+        if data is None:
+            return pd.DataFrame(columns=self.__headers__)
+        df = pd.json_normalize(data, sep="_")
+
+        got = set(df.columns)
+        want = set(self.__headers__)
+
+        mismatch = got ^ want
+        if mismatch:
+            errmsg = f"column mismatch from provided and retrieved: {list(mismatch)}"
+            Exit(LEVEL_ERROR, errmsg)
+
+        if apply_func:
+            return apply_func(df)
+
+        return df
+
+    def post_extract(self) -> None:
+        pass
+        # df.to_csv(self._output_file, index=False, header=True)
+
+        # Red.info(f"Writing {len(df)} records to: {self._output_file.absolute()}")

@@ -76,8 +76,8 @@ class OAuthApi:
         """
         self.client_id: str = client_id
         self.client_secret: str = client_secret
-        self.authorize_url: Optional[str] = None
-        self.endpoint_url: Optional[str] = None
+        self.authorize_url: str | None = None
+        self.endpoint_url: str | None = None
         self._timeout: int = timeout
         self._main_session: requests.Session = requests.Session()
         self._auth_session: requests.Session = requests.Session()
@@ -88,9 +88,9 @@ class OAuthApi:
             "client_secret": self.client_secret,
         }
 
-        self._api_token: Optional[str] = None
-        self._api_expires_in: Optional[int] = None
-        self._api_internal_timer: Optional[datetime] = None
+        self._api_token: str | None = None
+        self._api_expires_in: int | None = None
+        self._api_internal_timer: datetime | None = None
         self._cache_dir: Path = Path(tempfile.gettempdir())
 
         self.setup()
@@ -159,7 +159,7 @@ class OAuthApi:
             Exit(LEVEL_CRITICAL, str(e))
         return None
 
-    def refresh_token(self, sleep: bool = False) -> Optional[str]:
+    def refresh_token(self, sleep: bool = False) -> str | None:
         """Refreshes token based on set value for authorized_url and provided credentials
 
         :param sleep: (bool, defaults=False) - enforce a thread-stopping wait before refreshing

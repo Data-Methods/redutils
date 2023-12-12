@@ -2,16 +2,64 @@
 """
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Protocol
+from .mock import MockConnection
 
 import sys
 import pyodbc
-
+import json
+import pathlib
 
 LEVEL_CRITICAL = -3
 LEVEL_ERROR = -2
 LEVEL_WARNING = -1
 LEVEL_SUCCESS = 1
+
+
+class RedParameter:
+    """container class to hold red parameters
+
+    :param name: (str) - name of parameter
+    :param value: (str) - value of parameter
+    :param desc: (str, optional) - description of parameter
+
+
+
+    ```python
+    from pygcu.red import RedParameter
+
+    rp = RedParameter("FOO", "BAR", "Bar of Foo")
+
+    print(rp) # $PFOO$
+    ```
+
+    """
+
+    def __init__(self, name: str, value: str, desc: str = "") -> None:
+        self.name: str = name
+        self.value: str = value
+        self.desc: str = desc
+
+    def __str__(self) -> str:
+        return f"$P{self.name}$"
+
+
+class WherescapeProtocol(Protocol):
+    """
+    Interface for Wherescape database object
+    """
+
+    def connect(self, dsn: str, autocommit: bool) -> None:
+        ...
+
+    def execute(self, sql_query: str, *params: Any) -> pyodbc.Cursor:
+        ...
+
+    def ws_parameter_read(self, parameter: str, refresh: bool) -> RedParameter:
+        ...
+
+    def ws_parameter_write(self, param: RedParameter) -> None:
+        ...
 
 
 class RedReturn:
@@ -105,34 +153,6 @@ class RedReturn:
         if code in (LEVEL_CRITICAL, LEVEL_ERROR):
             self._crash_file.touch(exist_ok=True)
         sys.exit()
-
-
-class RedParameter:
-    """container class to hold red parameters
-
-    :param name: (str) - name of parameter
-    :param value: (str) - value of parameter
-    :param desc: (str, optional) - description of parameter
-
-
-
-    ```python
-    from pygcu.red import RedParameter
-
-    rp = RedParameter("FOO", "BAR", "Bar of Foo")
-
-    print(rp) # $PFOO$
-    ```
-
-    """
-
-    def __init__(self, name: str, value: str, desc: str = "") -> None:
-        self.name: str = name
-        self.value: str = value
-        self.desc: str = desc
-
-    def __str__(self) -> str:
-        return f"$P{self.name}$"
 
 
 class Wherescape:
@@ -252,5 +272,84 @@ class Wherescape:
         )
 
 
+class WherescapeLocal:
+    def connect(self, dsn: str, autocommit: bool = True) -> None:
+        self.conn = MockConnection(dsn)
+
+    def execute(self, sql_query: str, *params: Any) -> None:
+        if not self.conn:
+            Exit(LEVEL_ERROR, "Database connection not established.")
+
+            return
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute(sql_query)
+        except Exception as err:
+            Exit(LEVEL_ERROR, f"Error executing routine query: {err}")
+        finally:
+            cursor.close()
+
+    def ws_parameter_read(self, parameter: str, refresh: bool = False) -> RedParameter:
+        values = self.conn.cursor().params[parameter]
+        return RedParameter(parameter, values["value"], values["desc"])
+
+    def ws_parameter_write(self, p: RedParameter) -> None:
+        cursor = self.conn.cursor()
+        parameter = p.name
+        cursor.params[parameter]["value"] = p.value
+        cursor.params[parameter]["desc"] = p.desc
+        pfile = pathlib.Path(r"stubs/params.json")
+        json.dump(cursor.params, open(pfile, "w"), indent=4)
+        Red.log(f"Writing params file to {pfile.absolute()}")
+
+
 Red = RedReturn()
 Exit = Red.rreturn
+
+
+class WherescapeManager:
+    def __init__(self, repo_name: str, parameters: List[str]) -> None:
+        self.local_execution = not ("$PExecuted_In_Red$" == "1")  # type: ignore
+        if self.local_execution:
+            Red.log("Utilizing local Wherescape emulator")
+            self.db: WherescapeProtocol = WherescapeLocal()
+        else:
+            Red.log(f"Connecting to :{repo_name}")
+            self.db = Wherescape()
+
+        self.db.connect(repo_name, autocommit=True)
+        self._params: Dict[str, RedParameter] = {}
+
+    def __setitem__(self, __name: str, __value: Any) -> None:
+        if __name in self._params:
+            self._params[__name] = __value
+            return
+
+        if not isinstance(__value, (tuple, list)):
+            value, desc = (str(__value), "")
+        else:
+            if len(__value) > 2:
+                Red.warn(f"Iterable longer than two elements, ignoring >2")
+
+            if len(__value) == 1:
+                value, desc = __value[0], ""
+            else:
+                value, desc = __value[0], __value[1]
+
+        __new_value = self._params[__name]
+        __new_value.value = value
+        __new_value.desc = desc
+
+        # save to py object
+        self._params[__name] = __new_value
+
+        # update red database
+        self.db.ws_parameter_write(__new_value)
+
+    def __getitem__(self, __name: str) -> RedParameter:
+        print(f"Reading {__name}")
+        try:
+            return self.db.ws_parameter_read(__name, refresh=True)
+        except Exception as e:
+            Exit(LEVEL_ERROR, f"Unable to retrieve parameter: `{__name}`; {e}")
+        return RedParameter("", "")
