@@ -24,118 +24,6 @@ class BCSApi(OAuthApi, IngestionTemplate):
 
     BCS comes with many entities and follows the `OData`_ standard, this makes abstraction very easy and repeatable.
 
-    Example Usage for getting client communication table
-
-    ```python
-    from pathlib import Path
-    from datetime import date
-    from typing import Tuple
-
-    import time
-    import pandas as pd
-
-    from pygcu.red import (
-        Wherescape,
-        Exit,
-        Red,
-        LEVEL_SUCCESS,
-    )
-    from pygcu.services.bcs import BCSApi
-    from secret_server import SecretServer
-
-
-    db = Wherescape()
-    db.connect("$PRED_Database$")
-
-
-    _ENTITY_NAME = "ClientCommunications"
-    _FULL_RELOAD = db.ws_parameter_read(f"BCS_{_ENTITY_NAME}_Full_Reload")
-    _SINCE_LAST_RUN = db.ws_parameter_read(f"BCS_{_ENTITY_NAME}_LastLoad_Date")
-    _LOAD_DIR = db.ws_parameter_read("load_bcs")
-    _OUTPUT_FILE = f"{_ENTITY_NAME}_{time.strftime('%Y%m%d')}.csv"
-
-
-    class BCSClientCommunications(BCSApi):
-        __entity_name__: str = _ENTITY_NAME
-        __headers: Tuple = (
-            "ClientId",
-            "CreatedDate",
-            "Family",
-            "FamilyCode",
-            "Id",
-            "IsPrimary",
-            "Key",
-            "Type",
-            "TypeCode",
-            "UpdatedDate",
-            "Value",
-            "ClientReference_EntityKey_EntitySetName",
-            "ClientReference_EntityKey_EntityContainerName",
-            "ClientReference_EntityKey_EntityKeyValues",
-            "EntityKey_EntitySetName",
-            "EntityKey_EntityContainerName",
-            "EntityKey_EntityKeyValues",
-        )
-
-        _today: str = date.today().strftime("%Y-%m-%d")
-
-        def pre_extract(self) -> None:
-            params = {"$skip": 0, "$count": "true"}
-
-            if _FULL_RELOAD.value == "0":
-                params["$filter"] = f"UpdatedDate gt {_SINCE_LAST_RUN.value}"
-
-            self.url: str = self._endpoint_url.parse(
-                self.__entity_name__,
-                params=params,
-            )
-
-            self.output_file: Path = Path(_LOAD_DIR.value) / _OUTPUT_FILE
-
-
-        def extract(self) -> pd.DataFrame:
-
-            data = self.query(self.url)
-            if data is None:
-                return pd.DataFrame(columns=self.__headers)
-
-            df = pd.json_normalize(data, sep="_")
-            return df
-
-        def post_extract(self, df: pd.DataFrame):
-            df.to_csv(self.output_file, index=False, header=True)
-
-            Red.info(f"Writing {len(df)} records to: {self.output_file.absolute()}")
-
-            if _FULL_RELOAD.value == "1":
-                _FULL_RELOAD.value = "0"
-                db.ws_parameter_write(_FULL_RELOAD)
-                Red.info("Updating Full Reload parameter to 0")
-
-            # update last_update time
-            _SINCE_LAST_RUN.value = self._today
-            db.ws_parameter_write(_SINCE_LAST_RUN)
-            Red.info(f"Updating last update time to: {self._today}")
-
-
-    def main():
-        ss = SecretServer()
-        sid = 7791
-
-        client_id = ss.get_password(sid, "username").strip()
-        client_secret = ss.get_password(sid, "password").strip()
-
-        with BCSClientCommunications(client_id, client_secret) as bcs:
-            bcs.run()
-
-        Exit(LEVEL_SUCCESS, "Success")
-
-
-    if __name__ == "__main__":
-        main()
-    ```
-
-
     .. _OData: https://www.odata.org/
 
     """
@@ -143,8 +31,10 @@ class BCSApi(OAuthApi, IngestionTemplate):
     def setup(self) -> None:
         """setup bcs authorize and base url endpoints
 
-        :ivar BCSApi.authorize_url: - https://odata-nextgen.bakerhillsolutions.net/token
-        :ivar BCSApi.endpoint: - https://odata-nextgen.bakerhillsolutions.net/odata/
+        Class Attributes
+
+        * `BCSApi.authorize_url: str` - https://odata-nextgen.bakerhillsolutions.net/token
+        * `BCSApi.endpoint_url: str` - https://odata-nextgen.bakerhillsolutions.net/odata/
         """
         self.authorize_url = "https://odata-nextgen.bakerhillsolutions.net/token"
         self.endpoint_url = "https://odata-nextgen.bakerhillsolutions.net/odata/"
@@ -163,8 +53,12 @@ class BCSApi(OAuthApi, IngestionTemplate):
         :param prepared_url: (str) - fully prepared odata url
         :param max_pages: (int|None) - pages to process, if ``None`` then all pages
 
-        **Current machine as 32GB RAM, hopefully a single call to a specific object doesn't
-        cause issues, before clearing the cache.**
+        :return:
+
+        *Current machine has 32GB RAM, hopefully a single call to a specific object doesn't
+        cause issues, before clearing the cache.*
+
+        **TODO**: this method could use some tlc and optimization
         """
 
         ser_file = Path(base64.urlsafe_b64encode(prepared_url.encode()).decode())
@@ -280,7 +174,73 @@ class BCSApi(OAuthApi, IngestionTemplate):
 
 
 class BaseEntity(BCSApi):
-    """Base Entity"""
+    """All BCS tables are pendantically `Entities`. Any new or existing entities should
+    inherit this class as it takes care of 90% of the ingestion process and controlled with metadata
+
+    Example Usage:
+
+    ```python
+    from pathlib import Path
+    from typing import Tuple
+
+    import pandas as pd
+
+    from pygcu.red.secret_server import SecretServer
+    from pygcu.red.mock import SecretServer as _localSecretServer  # type: ignore
+    from pygcu.red import Exit, LEVEL_SUCCESS, WherescapeManager, Red
+    from pygcu.services.bcs import BaseEntity
+
+
+    class ClientOwnerships(BaseEntity):
+
+        __entity_name__ = "ClientOwnerships"
+        __headers__: Tuple[str, ...] = (
+            "Id",
+            "Owner",
+            "OwnershipPercentage",
+            "EntityKey_EntitySetName",
+            "EntityKey_EntityContainerName",
+            "EntityKey_EntityKeyValues",
+        )
+
+        def post_extract(self, df: pd.DataFrame) -> None:
+            df.to_csv(self._output_file, index=False, header=True)
+            Red.info(f"Writing {len(df)} records to: {self._output_file.absolute()}")
+
+
+    def main():
+        db = WherescapeManager("$PRED_Database$", parameters=["load_bcs"])
+
+        odata_params = {}
+        if db.local_execution:
+            SecretServer = _localSecretServer
+            odata_params["$top"] = "100"
+
+        ss = SecretServer()
+        sid = 7791
+
+        client_id = ss.get_password(sid, "username").strip()
+        client_secret = ss.get_password(sid, "password").strip()
+
+        with ClientOwnerships(
+            client_id=client_id,
+            client_secret=client_secret,
+            repo_db=db,
+            odata_params=odata_params,
+            load_dir=Path(db["load_bcs"].value),
+            delta=None,
+            force_full_reload=True,
+        ) as bcs:
+            bcs.run()
+
+        Exit(LEVEL_SUCCESS, "Success")
+
+
+    if __name__ == "__main__":
+        main()
+    ```
+
+    """
 
     __entity_name__: str | None = None
     __headers__: Tuple[str, ...] = ()
@@ -295,6 +255,31 @@ class BaseEntity(BCSApi):
         delta: Tuple[str, str] | None = None,
         force_full_reload: bool = False,
     ):
+        """Base Entity class for any BCS NextGen table. Inherit this class for finer control of ingestion.
+
+        Class Attributes
+
+        * `__entity_name__: (str|None)` Name of the entity (table) from BCS NextGen APIs
+        * `__headers__: (Tuple[str, ...])` A tuple of headers expected from desired entity
+
+
+        :param client_id: client_id to connect to API
+        :param client_secret: client_secret to connect to API
+        :param repo_db: Connection object to Wherescape Repo Database
+        :param odata_params: Additional OData params in to pass to api. Defaults to {}.
+        :param load_dir:  _description_. Defaults to Path(tempfile.gettempdir()).
+        :param delta: : _description_. Defaults to None.
+        :param force_full_reload:  _description_. Defaults to False.
+        """
+        if self.__entity_name__ is None:
+            Exit(
+                LEVEL_ERROR,
+                f"Entity name not defined, make sure to define __entity_name__ attribute",
+            )
+
+        if not self.__headers__:
+            Exit(LEVEL_ERROR, f"")
+
         super().__init__(client_id, client_secret)
 
         self._params = {"$skip": "0", "$count": "true", **odata_params}
@@ -314,6 +299,7 @@ class BaseEntity(BCSApi):
         self._repo_db = repo_db
 
     def pre_extract(self) -> None:
+        """Pre extration logic override this method to change default behavior"""
         if self._delta:
             if self._params.get("$filter"):
                 del self._params["$filter"]
@@ -330,6 +316,26 @@ class BaseEntity(BCSApi):
     def extract(
         self, apply_func: Callable[[pd.DataFrame], pd.DataFrame] | None = None
     ) -> pd.DataFrame:
+        """The extraction process for defined entity
+
+        Example Usage:
+
+        ```python
+        def cast_as_str(df: pd.DataFrame) -> pd.DataFrame:
+            df['mycolumn'] = df['mycolumn'].astype(str)
+            return df
+
+        class MyCustomEntity(BaseEntity):
+            ...
+            def extract(apply_func=cast_as_str):
+                super().extract(apply_func=apply_func)
+            ...
+        ```
+
+        :param apply_func:  Provide a custom function to handle any post-processing to data. Defaults to None.
+
+        :return: post-processed data from entity as a pandas dataframe
+        """
         data = self.query(self._url)
         if data is None:
             return pd.DataFrame(columns=self.__headers__)
@@ -341,12 +347,15 @@ class BaseEntity(BCSApi):
         mismatch = got ^ want
         if mismatch:
             errmsg = f"column mismatch from provided and retrieved: {list(mismatch)}"
-            Exit(LEVEL_ERROR, errmsg)
+            Red.warn(errmsg)
 
         if apply_func:
             return apply_func(df)
 
+        df.to_csv(self._output_file, index=False, header=True)
+        Red.info(f"Writing {len(df)} records to: {self._output_file.absolute()}")
+
         return df
 
     def post_extract(self, df: pd.DataFrame) -> None:
-        pass
+        """post extraction logic. Use this to block for any clean up and parameter changes in red"""

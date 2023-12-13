@@ -3,7 +3,6 @@
 
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Protocol
-from .mock import MockConnection
 
 import sys
 import pyodbc
@@ -274,6 +273,8 @@ class Wherescape:
 
 class WherescapeLocal:
     def connect(self, dsn: str, autocommit: bool = True) -> None:
+        from .mock import MockConnection
+
         self.conn = MockConnection(dsn)
 
     def execute(self, sql_query: str, *params: Any) -> None:
