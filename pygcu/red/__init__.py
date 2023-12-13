@@ -15,6 +15,26 @@ LEVEL_WARNING = -1
 LEVEL_SUCCESS = 1
 
 
+class WherescapeProtocol(Protocol):
+    """
+    Interface for Wherescape database object
+    """
+
+    # params: Dict[str, RedParameter]
+
+    def connect(self, dsn: str, autocommit: bool) -> None:
+        ...
+
+    def execute(self, sql_query: str, *params: Any) -> pyodbc.Cursor:
+        ...
+
+    def ws_parameter_read(self, parameter: str, refresh: bool) -> "RedParameter":
+        ...
+
+    def ws_parameter_write(self, param: "RedParameter") -> None:
+        ...
+
+
 class RedParameter:
     """container class to hold red parameters
 
@@ -41,24 +61,6 @@ class RedParameter:
 
     def __str__(self) -> str:
         return f"$P{self.name}$"
-
-
-class WherescapeProtocol(Protocol):
-    """
-    Interface for Wherescape database object
-    """
-
-    def connect(self, dsn: str, autocommit: bool) -> None:
-        ...
-
-    def execute(self, sql_query: str, *params: Any) -> pyodbc.Cursor:
-        ...
-
-    def ws_parameter_read(self, parameter: str, refresh: bool) -> RedParameter:
-        ...
-
-    def ws_parameter_write(self, param: RedParameter) -> None:
-        ...
 
 
 class RedReturn:
@@ -308,6 +310,46 @@ Red = RedReturn()
 Exit = Red.rreturn
 
 
+class _WherescapeParameterManager:
+    def __init__(self, db: WherescapeProtocol):
+        self._params: Dict[str, RedParameter] = {}
+        self.db = db
+
+    def get(self, name: str, refresh: bool = False) -> RedParameter | None:
+        try:
+            param = self.db.ws_parameter_read(name, refresh=refresh)
+            self._params[name] = param
+            return param
+        except Exception as e:
+            Exit(LEVEL_ERROR, f"Unable to retrieve parameter: `{name}`; {e}")
+        return None
+
+    def set(self, name: str, value: Any) -> None:
+        if name not in self._params:
+            _ = self.get(name)
+
+        if not isinstance(value, (tuple, list)):
+            value, desc = (str(value), "")
+        else:
+            if len(value) > 2:
+                Red.warn(f"Iterable longer than two elements, ignoring >2")
+
+            if len(value) == 1:
+                value, desc = value[0], ""
+            else:
+                value, desc = value[0], value[1]
+
+        __new_value = self._params[name]
+        __new_value.value = value
+        __new_value.desc = desc
+
+        # save to py object
+        self._params[name] = __new_value
+
+        # update red database
+        self.db.ws_parameter_write(__new_value)
+
+
 class WherescapeManager:
     def __init__(self, repo_name: str, use_local_env: bool = False) -> None:
         if use_local_env:
@@ -318,37 +360,38 @@ class WherescapeManager:
             self.db = Wherescape()
 
         self.db.connect(repo_name, autocommit=True)
-        self._params: Dict[str, RedParameter] = {}
+        self.params = _WherescapeParameterManager(self.db)
 
-    def __setitem__(self, __name: str, __value: Any) -> None:
-        if __name in self._params:
-            self._params[__name] = __value
-            return
+    # def __setitem__(self, __name: str, __value: Any) -> None:
+    #     if __name not in self._params:
+    #         _ = self.__getitem__(__name)
 
-        if not isinstance(__value, (tuple, list)):
-            value, desc = (str(__value), "")
-        else:
-            if len(__value) > 2:
-                Red.warn(f"Iterable longer than two elements, ignoring >2")
+    #     if not isinstance(__value, (tuple, list)):
+    #         value, desc = (str(__value), "")
+    #     else:
+    #         if len(__value) > 2:
+    #             Red.warn(f"Iterable longer than two elements, ignoring >2")
 
-            if len(__value) == 1:
-                value, desc = __value[0], ""
-            else:
-                value, desc = __value[0], __value[1]
+    #         if len(__value) == 1:
+    #             value, desc = __value[0], ""
+    #         else:
+    #             value, desc = __value[0], __value[1]
 
-        __new_value = self._params[__name]
-        __new_value.value = value
-        __new_value.desc = desc
+    #     __new_value = self._params[__name]
+    #     __new_value.value = value
+    #     __new_value.desc = desc
 
-        # save to py object
-        self._params[__name] = __new_value
+    #     # save to py object
+    #     self._params[__name] = __new_value
 
-        # update red database
-        self.db.ws_parameter_write(__new_value)
+    #     # update red database
+    #     self.db.ws_parameter_write(__new_value)
 
-    def __getitem__(self, __name: str) -> RedParameter:
-        try:
-            return self.db.ws_parameter_read(__name, refresh=True)
-        except Exception as e:
-            Exit(LEVEL_ERROR, f"Unable to retrieve parameter: `{__name}`; {e}")
-        return RedParameter("", "")
+    # def __getitem__(self, __name: str) -> RedParameter:
+    #     try:
+    #         param = self.db.ws_parameter_read(__name, refresh=True)
+    #         self._params[__name] = param
+    #         return param
+    #     except Exception as e:
+    #         Exit(LEVEL_ERROR, f"Unable to retrieve parameter: `{__name}`; {e}")
+    #     return RedParameter("", "")
