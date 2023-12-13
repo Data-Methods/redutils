@@ -347,7 +347,6 @@ class WherescapeManager:
         self.db.ws_parameter_write(__new_value)
 
     def __getitem__(self, __name: str) -> RedParameter:
-        print(f"Reading {__name}")
         try:
             return self.db.ws_parameter_read(__name, refresh=True)
         except Exception as e:
