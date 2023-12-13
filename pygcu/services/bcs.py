@@ -348,8 +348,5 @@ class BaseEntity(BCSApi):
 
         return df
 
-    def post_extract(self) -> None:
+    def post_extract(self, df: pd.DataFrame) -> None:
         pass
-        # df.to_csv(self._output_file, index=False, header=True)
-
-        # Red.info(f"Writing {len(df)} records to: {self._output_file.absolute()}")

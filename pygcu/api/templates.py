@@ -41,7 +41,7 @@ class IngestionTemplate:
         """Call this method to kickstart the ingestion"""
         self.pre_extract()
         df: pd.DataFrame = self.extract(apply_func=None)
-        self.post_extract()
+        self.post_extract(df)
 
     def pre_extract(self) -> None:
         """pre-hook logic before actual ingestion takes place, use this to set things up"""
@@ -61,7 +61,7 @@ class IngestionTemplate:
         .. _DataFrame: https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html
         """
 
-    def post_extract(self) -> None:
+    def post_extract(self, df: pd.DataFrame) -> None:
         """post-hook logic after ingestion of data. Override this method
         for any updates to database or cleanup work.
         """
