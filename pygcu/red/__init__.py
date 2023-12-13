@@ -309,9 +309,8 @@ Exit = Red.rreturn
 
 
 class WherescapeManager:
-    def __init__(self, repo_name: str, parameters: List[str]) -> None:
-        self.local_execution = not ("$PExecuted_In_Red$" == "1")  # type: ignore
-        if self.local_execution:
+    def __init__(self, repo_name: str, use_local_env: bool = False) -> None:
+        if use_local_env:
             Red.log("Utilizing local Wherescape emulator")
             self.db: WherescapeProtocol = WherescapeLocal()
         else:
