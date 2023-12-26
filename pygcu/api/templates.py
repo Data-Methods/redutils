@@ -38,18 +38,18 @@ class IngestionTemplate:
     ```
     """
 
-    def run(self) -> None:
-        """Call this method to kickstart the ingestion"""
-        self.pre_extract()
-        df: pd.DataFrame = self.post_process(self.extract())
-        self.post_extract(df)
-
     def pre_extract(self) -> None:
         """pre-hook logic before actual ingestion takes place, use this to set things up"""
         raise NotImplementedError()
 
-    def extract(self) -> pd.DataFrame:
+    def extract(
+        self, apply_func: Callable[[pd.DataFrame], pd.DataFrame] | None = None
+    ) -> pd.DataFrame:
         """overwrite method that handles actual pulling of data
+
+
+        :param apply_func: (Callable) - A passable function that accepts a DataFrame and return the
+        the same DataFrame. Use this function to do some post-processing of the data.
 
         :return: `DataFrame`_
 

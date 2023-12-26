@@ -359,3 +359,10 @@ class BaseEntity(BCSApi):
 
     def post_extract(self, df: pd.DataFrame) -> None:
         """post extraction logic. Use this to block for any clean up and parameter changes in red"""
+
+    def run(self):
+        """run"""
+        self.pre_extract()
+        df = self.extract()
+        self.post_process(df)
+        self.post_extract(df)
