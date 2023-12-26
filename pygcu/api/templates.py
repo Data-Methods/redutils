@@ -15,17 +15,18 @@ class IngestionTemplate:
     ```python
     import pandas as pd
 
-    def replace_nas_with_zero(df):
-        return df.fillna(0)
 
     class CustomIngestion(IngestionTemplate):
         def pre_extract(self):
             pass
 
-        def extract(self, replace_nas_with_zero):
+        def extract(self):
             data = get_all_the_data()
             df = pd.DataFrame(data)
             return df
+
+        def post_processing(self, df):
+            return df.fillna(0)
 
         def post_extract(self, df):
             df.columns = ("A", "B", "C")
@@ -40,26 +41,31 @@ class IngestionTemplate:
     def run(self) -> None:
         """Call this method to kickstart the ingestion"""
         self.pre_extract()
-        df: pd.DataFrame = self.extract(apply_func=None)
+        df: pd.DataFrame = self.post_process(self.extract())
         self.post_extract(df)
 
     def pre_extract(self) -> None:
         """pre-hook logic before actual ingestion takes place, use this to set things up"""
         raise NotImplementedError()
 
-    def extract(
-        self, apply_func: Callable[[pd.DataFrame], pd.DataFrame] | None = None
-    ) -> pd.DataFrame:
+    def extract(self) -> pd.DataFrame:
         """overwrite method that handles actual pulling of data
-
-
-        :param apply_func: (Callable) - A passable function that accepts a DataFrame and return the
-        the same DataFrame. Use this function to do some post-processing of the data.
 
         :return: `DataFrame`_
 
         .. _DataFrame: https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html
         """
+
+    def post_process(self, df: pd.DataFrame) -> pd.DataFrame:
+        """apply custom post processing of retrieved dataframe
+
+        :param df: (pd.DataFrame) - The original dataframe retrieved from extraction
+
+        :return: `DataFrame`_
+        .. _DataFrame: https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html
+
+        """
+        return df
 
     def post_extract(self, df: pd.DataFrame) -> None:
         """post-hook logic after ingestion of data. Override this method
