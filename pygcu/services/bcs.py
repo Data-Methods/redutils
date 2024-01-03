@@ -309,7 +309,7 @@ class BaseEntity(BCSApi):
                 del self._params["$filter"]
 
             field_name, field_value = self._delta
-            self._params["$filter"] = f"{field_name} gt {field_value}"
+            self._params["$filter"] = f"{field_name} ge {field_value}"
         else:
             self._force_full_reload = True
 
