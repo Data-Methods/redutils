@@ -285,10 +285,6 @@ class BaseEntity(BCSApi):
         self._params = {"$skip": "0", "$count": "true", **odata_params}
 
         self._today = date.today().strftime("%Y-%m-%d")
-        self._url = ODataUrl(str(self.endpoint_url)).parse(
-            str(self.__entity_name__),
-            params=self._params,
-        )
 
         self._load_dir = load_dir
         self._delta = delta
@@ -312,6 +308,11 @@ class BaseEntity(BCSApi):
         if self._force_full_reload:
             if self._params.get("$filter"):
                 del self._params["$filter"]
+
+        self._url = ODataUrl(str(self.endpoint_url)).parse(
+            str(self.__entity_name__),
+            params=self._params,
+        )
 
     def extract(
         self, apply_func: Callable[[pd.DataFrame], pd.DataFrame] | None = None
@@ -338,8 +339,9 @@ class BaseEntity(BCSApi):
         """
         data = self.query(self._url)
         if data is None:
-            return pd.DataFrame(columns=self.__headers__)
-        df = pd.json_normalize(data, sep="_")
+            df = pd.DataFrame(columns=self.__headers__)
+        else:
+            df = pd.json_normalize(data, sep="_")
 
         got = set(df.columns)
         want = set(self.__headers__)
