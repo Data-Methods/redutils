@@ -274,11 +274,11 @@ class BaseEntity(BCSApi):
         if self.__entity_name__ is None:
             Exit(
                 LEVEL_ERROR,
-                f"Entity name not defined, make sure to define __entity_name__ attribute",
+                "Entity name not defined, make sure to define __entity_name__ attribute",
             )
 
         if not self.__headers__:
-            Exit(LEVEL_ERROR, f"")
+            Exit(LEVEL_ERROR, f"No supplied headers...")
 
         super().__init__(client_id, client_secret)
 
@@ -294,6 +294,14 @@ class BaseEntity(BCSApi):
         )
         self._repo_db = repo_db
 
+    @property
+    def url(self) -> ODataUrl:
+        """makes odata url"""
+        return ODataUrl(str(self.endpoint_url)).parse(
+            str(self.__entity_name__),
+            params=self._params,
+        )
+
     def pre_extract(self) -> None:
         """Pre extration logic override this method to change default behavior"""
         if self._delta:
@@ -308,11 +316,6 @@ class BaseEntity(BCSApi):
         if self._force_full_reload:
             if self._params.get("$filter"):
                 del self._params["$filter"]
-
-        self._url = ODataUrl(str(self.endpoint_url)).parse(
-            str(self.__entity_name__),
-            params=self._params,
-        )
 
     def extract(
         self, apply_func: Callable[[pd.DataFrame], pd.DataFrame] | None = None
@@ -337,7 +340,7 @@ class BaseEntity(BCSApi):
 
         :return: post-processed data from entity as a pandas dataframe
         """
-        data = self.query(self._url)
+        data = self.query(self.url)
         if data is None:
             df = pd.DataFrame(columns=self.__headers__)
         else:
