@@ -348,7 +348,8 @@ class BaseEntity(BCSApi):
 
         mismatch = got ^ want
         if mismatch:
-            errmsg = f"column mismatch from provided and retrieved: {list(mismatch)}"
+            errmsg = f"column mismatch from provided and retrieved: {list(mismatch)}... removing"
+            df.drop(columns=list(mismatch), inplace=True)
             Red.warn(errmsg)
 
         if apply_func:
