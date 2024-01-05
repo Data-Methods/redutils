@@ -6,6 +6,7 @@ import traceback
 import time
 
 import pandas as pd
+import numpy as np
 
 from pathlib import Path
 from typing import Any, Callable, Tuple, List, Dict, Optional
@@ -278,7 +279,7 @@ class BaseEntity(BCSApi):
             )
 
         if not self.__headers__:
-            Exit(LEVEL_ERROR, f"No supplied headers...")
+            Exit(LEVEL_ERROR, "No supplied headers...")
 
         super().__init__(client_id, client_secret)
 
@@ -349,11 +350,22 @@ class BaseEntity(BCSApi):
         got = set(df.columns)
         want = set(self.__headers__)
 
-        mismatch = got ^ want
-        if mismatch:
-            errmsg = f"column mismatch from provided and retrieved: {list(mismatch)}... removing"
-            df.drop(columns=list(mismatch), inplace=True)
+        unknown_columns = got.difference(want)
+
+        if unknown_columns:
+            errmsg = f"columns mismatch from provided and retrieved: {unknown_columns}"
+            df.drop(columns=unknown_columns, inplace=True)
             Red.warn(errmsg)
+
+        # add any missing columns with default null value
+        for column in want:
+            if column not in df.columns:
+                df[column] = np.NaN
+
+        try:
+            df = df[list(self.__headers__)]
+        except KeyError as e:
+            Exit(LEVEL_CRITICAL, f"Key Error: Necessary columns not found\n{e}")
 
         if apply_func:
             return apply_func(df)
