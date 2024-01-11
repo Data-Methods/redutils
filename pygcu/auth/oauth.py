@@ -7,7 +7,7 @@ from datetime import datetime
 import traceback
 import tempfile
 import time
-from typing import Callable, Dict, Optional
+from typing import Any, Callable, Dict, Optional
 from typing_extensions import Self
 import requests
 
@@ -111,8 +111,12 @@ class OAuthApi:
         self._main_session.close()
         self._auth_session.close()
 
+    @property
+    def auth_header(self) -> dict[str, str]:
+        return {"Authorization": f"Bearer {self._api_token}"}
+
     def smart_call(
-        self, func: Callable[..., requests.Response], url: str, **params: str
+        self, func: Callable[..., requests.Response], url: str, **params: dict[str, Any]
     ) -> Optional[requests.Response]:
         """Helper caller blueprint method that handles auto token refresh
 
@@ -125,6 +129,13 @@ class OAuthApi:
         .. _Response: https://docs.python-requests.org/en/v1.1.0/api/#requests.Response
 
         """
+
+        def _call_func() -> requests.Response:
+            if "headers" in params:
+                params["headers"].update(self.auth_header)
+            else:
+                params["headers"] = self.auth_header
+            return func(url, timeout=self._timeout, **params)
 
         if not callable(func):
             Exit(LEVEL_CRITICAL, f"passed func is not callable: {func}")
@@ -143,14 +154,13 @@ class OAuthApi:
             # but, `func` expects to be a valid requests HTTP method
             # i.e: `get`, `post`
             Red.log(f"Calling: {url}")
-            resp = func(url, timeout=self._timeout, **params)
+            resp = _call_func()
 
             if resp.status_code == 401:  # edge case: expired token
                 Red.log("Token expired...refreshing")
                 self.refresh_token(sleep=True)
 
-                ## TODO: Fix me
-                resp = func(url, timeout=self._timeout, **params)
+                resp = _call_func()
 
             if 200 > resp.status_code > 299:
                 Exit(LEVEL_ERROR, f"Unsuccessful api call: {resp.url}")
@@ -184,6 +194,7 @@ class OAuthApi:
 
         try:
             payload = resp.json()
+            Red.debug(f"Old Access Token: {self._api_token}")
             token = payload.get("access_token")
             expires_in = payload.get("expires_in")
         except Exception as e:
@@ -196,6 +207,7 @@ class OAuthApi:
         self._api_expires_in = expires_in
         self._api_internal_timer = datetime.now()
         Red.log("Token refreshed")
+        Red.debug(f"New Token: {self._api_token}")
         return self._api_token
 
     def setup(self) -> None:

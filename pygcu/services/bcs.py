@@ -114,11 +114,7 @@ class BCSApi(OAuthApi, IngestionTemplate):
         try:
             while True:
                 Red.log(f"Querying Page....{page}")
-                resp = self.smart_call(
-                    self._main_session.get,
-                    prepared_url,
-                    headers={"Authorization": f"Bearer {self._api_token}"},  # type: ignore
-                )
+                resp = self.smart_call(self._main_session.get, prepared_url)
 
                 try:
                     content = resp.json()  # type: ignore
