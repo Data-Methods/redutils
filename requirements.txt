@@ -3,3 +3,5 @@ pyodbc
 pandas
 polars
 pdoc
+typing_extensions
+pyarrow

@@ -251,6 +251,7 @@ class BaseEntity(BCSApi):
         load_dir: Path = Path(tempfile.gettempdir()),
         delta: Tuple[str, str] | None = None,
         force_full_reload: bool = False,
+        save_format: str = "csv",
     ):
         """Base Entity class for any BCS NextGen table. Inherit this class for finer control of ingestion.
 
@@ -264,9 +265,11 @@ class BaseEntity(BCSApi):
         :param client_secret: client_secret to connect to API
         :param repo_db: Connection object to Wherescape Repo Database
         :param odata_params: Additional OData params in to pass to api. Defaults to {}.
-        :param load_dir:  _description_. Defaults to Path(tempfile.gettempdir()).
-        :param delta: : _description_. Defaults to None.
-        :param force_full_reload:  _description_. Defaults to False.
+        :param load_dir:  The default loading directory. Defaults to Path(tempfile.gettempdir()).
+        :param delta: : Delta parameter name. Defaults to None.
+        :param force_full_reload:  Perform full reload of data. Defaults to False.
+        :param save_format:  Choose format to save data after ingestion. Defaults to "csv".
+        :param use_polars:  *Experimental* Switch to using polars as data processing backend. Defaults to False.
         """
         if self.__entity_name__ is None:
             Exit(
@@ -286,10 +289,23 @@ class BaseEntity(BCSApi):
         self._load_dir = load_dir
         self._delta = delta
         self._force_full_reload = force_full_reload
-        self._output_file = (
-            load_dir / f"{self.__entity_name__}_{time.strftime('%Y%m%d')}.csv"
-        )
+
         self._repo_db = repo_db
+
+        if save_format not in self.valid_save_formats:
+            Exit(
+                LEVEL_ERROR,
+                f"Invalid save format, valid formats: {self.valid_save_formats}",
+            )
+        self._save_format = save_format
+        self._output_file = (
+            load_dir
+            / f"{self.__entity_name__}_{time.strftime('%Y%m%d')}.{self._save_format}"
+        )
+
+    @property
+    def valid_save_formats(self) -> List[str]:
+        return ["csv", "parquet"]
 
     @property
     def url(self) -> ODataUrl:
@@ -366,7 +382,19 @@ class BaseEntity(BCSApi):
         if apply_func:
             return apply_func(df)
 
-        df.to_csv(self._output_file, index=False, header=True)
+        match self._save_format:
+            case "csv":
+                df.to_csv(self._output_file, index=False, header=True)
+            case "parquet":
+                df.to_parquet(
+                    self._output_file,
+                    index=False,
+                    engine="pyarrow",
+                    compression="snappy",
+                )
+            case _:
+                Exit(LEVEL_CRITICAL, "Unkonwn save format")
+
         Red.info(f"Writing {len(df)} records to: {self._output_file.absolute()}")
 
         return df
