@@ -269,7 +269,6 @@ class BaseEntity(BCSApi):
         :param delta: : Delta parameter name. Defaults to None.
         :param force_full_reload:  Perform full reload of data. Defaults to False.
         :param save_format:  Choose format to save data after ingestion. Defaults to "csv".
-        :param use_polars:  *Experimental* Switch to using polars as data processing backend. Defaults to False.
         """
         if self.__entity_name__ is None:
             Exit(
@@ -393,7 +392,7 @@ class BaseEntity(BCSApi):
                     compression="snappy",
                 )
             case _:
-                Exit(LEVEL_CRITICAL, "Unkonwn save format")
+                Exit(LEVEL_CRITICAL, "Unknown save format")
 
         Red.info(f"Writing {len(df)} records to: {self._output_file.absolute()}")
 
