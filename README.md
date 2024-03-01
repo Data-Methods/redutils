@@ -1,4 +1,4 @@
-# PyGCU
+# RedUtils
 
 A python based library to help with data ingestion at Global Credit Union.
 
