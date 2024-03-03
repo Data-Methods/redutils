@@ -1,8 +1,21 @@
 """
 Dedicated to templates and design patterns
 """
+
 from typing import Callable
-import pandas as pd
+
+# try to import pandas, if not available, then use polars
+# if polars is not available, then raise an ImportError
+
+try:
+    import pandas as pd
+except ImportError:
+    try:
+        import polars as pd
+    except ImportError:
+        raise ImportError(
+            "You must have either pandas or polars installed to use this module"
+        )
 
 
 class IngestionTemplate:
@@ -14,6 +27,7 @@ class IngestionTemplate:
 
     ```python
     import pandas as pd
+    # or import polars as pd
 
 
     class CustomIngestion(IngestionTemplate):
