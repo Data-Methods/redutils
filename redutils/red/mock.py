@@ -82,3 +82,18 @@ class SecretServer:
 
     def get_password(self, id: int, name: str) -> str:
         return str(self._local_secrets[str(id)][name])
+
+
+class AzureKeyVault(SecretServer):
+    """example_secret 
+        {
+            "secret_name": {
+                "value": "decoded_secret_value",
+                "content_type": "additional metadata"
+            }
+        }
+    """
+    
+    def get_secret(self, secret_name: str) -> str:
+        return self._local_secrets[secret_name]["value"]
+        
