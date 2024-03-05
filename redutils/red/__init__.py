@@ -1,5 +1,4 @@
-""" Wherescape Red specific functions, utilities, and logic.
-"""
+"""Wherescape Red specific functions, utilities, and logic."""
 
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Protocol
@@ -8,6 +7,7 @@ import sys
 import pyodbc
 import json
 import pathlib
+import os
 
 LEVEL_CRITICAL = -3
 LEVEL_ERROR = -2
@@ -22,17 +22,13 @@ class WherescapeProtocol(Protocol):
 
     # params: Dict[str, RedParameter]
 
-    def connect(self, dsn: str, autocommit: bool) -> None:
-        ...
+    def connect(self, dsn: str, autocommit: bool) -> None: ...
 
-    def execute(self, sql_query: str, *params: Any) -> pyodbc.Cursor:
-        ...
+    def execute(self, sql_query: str, *params: Any) -> pyodbc.Cursor: ...
 
-    def ws_parameter_read(self, parameter: str, refresh: bool) -> "RedParameter":
-        ...
+    def ws_parameter_read(self, parameter: str, refresh: bool) -> "RedParameter": ...
 
-    def ws_parameter_write(self, param: "RedParameter") -> None:
-        ...
+    def ws_parameter_write(self, param: "RedParameter") -> None: ...
 
 
 class RedParameter:
@@ -181,6 +177,17 @@ class Wherescape:
         self.parameters: Dict[str, RedParameter] = {}
         self.conn: Optional[pyodbc.Connection] = None
 
+    def get_env(self, env_name: str) -> str:
+        """gets environment variable from system
+
+        :param env_name: (str) - name of environment variable to retrieve
+
+        """
+        try:
+            return os.environ[env_name]
+        except KeyError:
+            Exit(LEVEL_ERROR, f"Environment variable {env_name} not set")
+
     def connect(self, dsn: str, autocommit: bool = True) -> None:
         """connects to red wherescape repo database
 
@@ -192,13 +199,20 @@ class Wherescape:
 
         try:
             self.conn = pyodbc.connect(DSN=dsn, autocommit=autocommit)
-        except pyodbc.Error as err:
-            Exit(
-                LEVEL_CRITICAL,
-                f"Failed to connect - sql_state: {err.args[0]}\nsql_state_description {err.args[1]}",
-            )
-        except Exception as e:
-            Exit(LEVEL_CRITICAL, f"An uncaught exception occurred: {e}")
+        except Exception:
+            # try constructing connection string from ENVs that should be set by Red.
+            try:
+                dsn = self.get_env("WSL_META_DSN")
+                user = self.get_env("WSL_META_USER")
+                password = self.get_env("WSL_META_PWD")
+                db = self.get_env("WSL_META_DB")
+                schema = self.get_env("WSL_META_SCHEMA")
+                connstring = (
+                    f"DSN={dsn};UID={user};PWD={password};DATABASE={db};SCHEMA={schema}"
+                )
+                self.conn = pyodbc.connect(connstring)
+            except Exception as e:
+                Exit(LEVEL_CRITICAL, f"An uncaught exception occurred: {e}")
 
     def execute(self, sql_query: str, *params: Any) -> pyodbc.Cursor:
         """
