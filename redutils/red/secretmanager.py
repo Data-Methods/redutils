@@ -2,7 +2,7 @@
 
 import subprocess
 import os
-from azure.identity import EnvironmentCredential
+from azure.identity import ClientSecretCredential
 from azure.keyvault.secrets import SecretClient
 from typing import Any, Optional
 
@@ -81,16 +81,15 @@ class AzureKeyVault:
             return secret.value
         except Exception as err:
             Exit(LEVEL_ERROR, f"Could not get secret: {err}")
-        return None
 
-    @staticmethod
-    def credential_with_username_and_password(
+    @classmethod
+    def credential_with_client_secret(
+        cls,
+        kvname: str,
         client_id: str,
-        username: str,
-        password: str,
+        client_secret: str,
         tenant_id: Optional[str] = None,
-        authority_host: Optional[str] = None,
-    ) -> EnvironmentCredential:
+    ) -> ClientSecretCredential:
         """authenticate with username and password
 
         :param client_id: (str) - client id
@@ -101,10 +100,12 @@ class AzureKeyVault:
 
         :return: (EnvironmentCredential) - credential object
         """
-        return EnvironmentCredential(
-            authority=authority_host,
-            tenant_id=tenant_id,
+        credential = ClientSecretCredential(
             client_id=client_id,
-            username=username,
-            password=password,
+            client_secret=client_secret,
+            tenant_id=tenant_id,
         )
+        try:
+            return cls(kvname, credential)
+        except Exception as err:
+            Exit(LEVEL_ERROR, f"Could not create handler to Azure Key Vault: {err}")

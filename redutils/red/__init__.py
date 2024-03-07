@@ -324,6 +324,16 @@ Red = RedReturn()
 Exit = Red.rreturn
 
 
+class _WherescapeEnvironmentManager:
+    def get(self, name: str) -> str:
+        try:
+            return os.environ[name]
+        except KeyError:
+            Exit(LEVEL_ERROR, f"Environment variable {name} not set")
+        except Exception as e:
+            Exit(LEVEL_ERROR, f"An uncaught exception occurred: {e}")
+
+
 class _WherescapeParameterManager:
     def __init__(self, db: WherescapeProtocol):
         self._params: Dict[str, RedParameter] = {}
@@ -346,7 +356,7 @@ class _WherescapeParameterManager:
             value, desc = (str(value), "")
         else:
             if len(value) > 2:
-                Red.warn(f"Iterable longer than two elements, ignoring >2")
+                Red.warn("Iterable longer than two elements, ignoring >2")
 
             if len(value) == 1:
                 value, desc = value[0], ""
@@ -375,37 +385,4 @@ class WherescapeManager:
 
         self.db.connect(repo_name, autocommit=True)
         self.params = _WherescapeParameterManager(self.db)
-
-    # def __setitem__(self, __name: str, __value: Any) -> None:
-    #     if __name not in self._params:
-    #         _ = self.__getitem__(__name)
-
-    #     if not isinstance(__value, (tuple, list)):
-    #         value, desc = (str(__value), "")
-    #     else:
-    #         if len(__value) > 2:
-    #             Red.warn(f"Iterable longer than two elements, ignoring >2")
-
-    #         if len(__value) == 1:
-    #             value, desc = __value[0], ""
-    #         else:
-    #             value, desc = __value[0], __value[1]
-
-    #     __new_value = self._params[__name]
-    #     __new_value.value = value
-    #     __new_value.desc = desc
-
-    #     # save to py object
-    #     self._params[__name] = __new_value
-
-    #     # update red database
-    #     self.db.ws_parameter_write(__new_value)
-
-    # def __getitem__(self, __name: str) -> RedParameter:
-    #     try:
-    #         param = self.db.ws_parameter_read(__name, refresh=True)
-    #         self._params[__name] = param
-    #         return param
-    #     except Exception as e:
-    #         Exit(LEVEL_ERROR, f"Unable to retrieve parameter: `{__name}`; {e}")
-    #     return RedParameter("", "")
+        self.envs = _WherescapeEnvironmentManager()
