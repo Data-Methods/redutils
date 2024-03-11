@@ -41,21 +41,6 @@ class CleargistixBase(GenericToken, AsyncIngestionTemplate):
     def full_url(self, uri: str):
         return f"{self.server}/{self.uri_prefix}/{uri}"
 
-    def request(self, uri, method: str = "get", **method_kwargs) -> List[dict]:
-        resp = self.call(method, f"{self.full_url(uri)}", **method_kwargs).json()
-
-        if resp.get("IsSuccess") is not True:
-            Exit(
-                LEVEL_ERROR,
-                f"Error calling {uri}\nCode:{resp.get('ErrorCode')}\nMessage:{resp.get('ErrorMessage')}",
-            )
-
-        jdata = resp.get("json")
-        if jdata is None:
-            Exit(LEVEL_ERROR, f"No data returned from {uri}")
-
-        return jdata
-
     async def async_request(
         self, uri, method: str = "get", **method_kwargs
     ) -> List[dict]:

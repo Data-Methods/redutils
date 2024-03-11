@@ -286,6 +286,33 @@ class Wherescape:
             "EXEC dbo.WsParameterWrite ?, ?, ?", (param.name, param.value, param.desc)
         )
 
+    def ws_extended_property(self, object_name: str, property_name) -> Optional[str]:
+        """Reads the extended property of an object in Wherescape Red.
+
+        This function reads the extended property of an object in Wherescape Red.
+
+        :param object_name: (str) - the object to read the extended property from
+
+        """
+
+        stmt = (
+            "select pv.epv_value "
+            "FROM dbo.ws_ext_prop_value pv "
+            "JOIN dbo.ws_ext_prop_def pd ON pd.epd_key = pv.epv_def_key "
+            "JOIN dbo.ws_load_tab lt ON lt.lt_obj_key = pv.epv_obj_key "
+            "WHERE lt.lt_table_name = ? "
+            "AND pd.epd_variable_name = ?;"
+        )
+        cursor = self.execute(stmt, object_name, property_name)
+        value = cursor.fetchone()
+
+        if value is None:
+            Red.warn(f"Unknown Extended Property for: {object_name}")
+            return None
+
+        cursor.close()
+        return value
+
 
 class WherescapeLocal:
     def connect(self, dsn: str, autocommit: bool = True) -> None:
