@@ -30,6 +30,10 @@ class WherescapeProtocol(Protocol):
 
     def ws_parameter_write(self, param: "RedParameter") -> None: ...
 
+    def ws_extended_property(
+        self, object_name: str, property_name
+    ) -> Optional[str]: ...
+
 
 class RedParameter:
     """container class to hold red parameters
@@ -346,6 +350,10 @@ class WherescapeLocal:
         json.dump(cursor.params, open(pfile, "w"), indent=4)
         Red.log(f"Writing params file to {pfile.absolute()}")
 
+    def ws_extended_property(self, object_name: str, property_name: str) -> str:
+        value = self.conn.cursor().extended_properties[object_name][property_name]
+        return value
+
 
 Red = RedReturn()
 Exit = Red.rreturn
@@ -401,6 +409,15 @@ class _WherescapeParameterManager:
         self.db.ws_parameter_write(__new_value)
 
 
+class _WherescapeExtendedPropertyManager:
+    def __init__(self, db: WherescapeProtocol):
+        self._params: Dict[str, RedParameter] = {}
+        self.db = db
+
+    def get(self, object_name: str, property_name: str) -> str | None:
+        return self.db.ws_extended_property(object_name, property_name)
+
+
 class WherescapeManager:
     def __init__(self, repo_name: str, use_local_env: bool = False) -> None:
         if use_local_env:
@@ -413,3 +430,4 @@ class WherescapeManager:
         self.db.connect(repo_name, autocommit=True)
         self.params = _WherescapeParameterManager(self.db)
         self.envs = _WherescapeEnvironmentManager()
+        self.exp = _WherescapeExtendedPropertyManager(self.db)

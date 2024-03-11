@@ -3,7 +3,7 @@ This file mocks the database connection to the "emulated" red repo.
 
 Little functionality actually takes place here, but at the very least it supports
 
-- The parameter feature in red by reading/writing to parameters which is actually a 
+- The parameter feature in red by reading/writing to parameters which is actually a
 JSON file locally
 """
 
@@ -20,6 +20,10 @@ class _MockCursor:
     pfile = open(tempfile.gettempdir() + "/params.json")
     params: Dict[str, Dict[str, str]] = json.loads(pfile.read())
     pfile.close()
+
+    expfile = open(tempfile.gettempdir() + "/extended_properties.json")
+    extended_properties: Dict[str, Dict[str, str]] = json.loads(expfile.read())
+    expfile.close()
 
     def __init__(self) -> None:
         self.logger = Logger(".", "mock_cursor.log").logger("mock_cursor")
@@ -45,6 +49,9 @@ class _MockCursor:
             (self.params.get(x["value"]), self.params.get(x["desc"]))
             for x in self.mock_returns
         ]
+
+    def extended_properties(self, object_name: str, property_name: str) -> str | None:
+        return self.extended_properties.get(object_name, {}).get(property_name, None)
 
 
 class MockConnection:
@@ -85,15 +92,14 @@ class SecretServer:
 
 
 class AzureKeyVault(SecretServer):
-    """example_secret 
-        {
-            "secret_name": {
-                "value": "decoded_secret_value",
-                "content_type": "additional metadata"
-            }
+    """example_secret
+    {
+        "secret_name": {
+            "value": "decoded_secret_value",
+            "content_type": "additional metadata"
         }
+    }
     """
-    
+
     def get_secret(self, secret_name: str) -> str:
         return self._local_secrets[secret_name]["value"]
-        
