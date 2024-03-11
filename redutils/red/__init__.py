@@ -351,7 +351,7 @@ class WherescapeLocal:
         Red.log(f"Writing params file to {pfile.absolute()}")
 
     def ws_extended_property(self, object_name: str, property_name: str) -> str:
-        value = self.conn.cursor().extended_properties[object_name][property_name]
+        value = self.conn.cursor().extended_properties(object_name, property_name)
         return value
 
 
@@ -430,4 +430,4 @@ class WherescapeManager:
         self.db.connect(repo_name, autocommit=True)
         self.params = _WherescapeParameterManager(self.db)
         self.envs = _WherescapeEnvironmentManager()
-        self.exp = _WherescapeExtendedPropertyManager(self.db)
+        self.ext_prop = _WherescapeExtendedPropertyManager(self.db)

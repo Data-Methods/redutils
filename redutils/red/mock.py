@@ -18,11 +18,11 @@ import os
 
 class _MockCursor:
     pfile = open(tempfile.gettempdir() + "/params.json")
-    params: Dict[str, Dict[str, str]] = json.loads(pfile.read())
+    _params: Dict[str, Dict[str, str]] = json.loads(pfile.read())
     pfile.close()
 
     expfile = open(tempfile.gettempdir() + "/extended_properties.json")
-    extended_properties: Dict[str, Dict[str, str]] = json.loads(expfile.read())
+    _extended_properties: Dict[str, Dict[str, str]] = json.loads(expfile.read())
     expfile.close()
 
     def __init__(self) -> None:
@@ -31,7 +31,7 @@ class _MockCursor:
 
     def execute(self, sql_query: str, *params: str) -> None:
         self.mock_returns.clear()
-        for p in params:
+        for p in _params:
             self.mock_returns.append(p)
 
         self.logger.info(f"Mocking Execution: Query:{sql_query}\nParams: {params}")
@@ -41,17 +41,17 @@ class _MockCursor:
 
     def fetchone(self) -> Tuple[str, str]:
         idx1 = self.mock_returns[0]
-        r = self.params[idx1]
+        r = self._params[idx1]
         return r["value"], r["desc"]
 
     def fetchall(self) -> List[Tuple[str, str]]:
         return [
-            (self.params.get(x["value"]), self.params.get(x["desc"]))
+            (self._params.get(x["value"]), self._params.get(x["desc"]))
             for x in self.mock_returns
         ]
 
     def extended_properties(self, object_name: str, property_name: str) -> str | None:
-        return self.extended_properties.get(object_name, {}).get(property_name, None)
+        return self._extended_properties.get(object_name, {}).get(property_name, None)
 
 
 class MockConnection:
