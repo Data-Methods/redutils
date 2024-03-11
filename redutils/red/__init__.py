@@ -311,7 +311,7 @@ class Wherescape:
             return None
 
         cursor.close()
-        return value
+        return value[0]
 
 
 class WherescapeLocal:
