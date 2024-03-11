@@ -3,10 +3,11 @@ special token or password embedded in the header of a request.
 """
 
 import requests
+import aiohttp
 from typing import Any, Callable, Dict, Optional
 from typing_extensions import Self
 from faker import Faker
-from ..red import Exit, Red, LEVEL_ERROR, LEVEL_CRITICAL
+from ..red import Exit, Red, LEVEL_ERROR
 
 
 class GenericToken:
@@ -17,19 +18,22 @@ class GenericToken:
 
     def __init__(self, token_or_key: str) -> None:
         self._token = token_or_key
-        self._main_session = requests.Session()
         self._headers = {"User-Agent": Faker().user_agent()}
         self.setup()
 
     def __enter__(self):
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self._main_session.close()
+    def __exit__(self, exc_type, exc_value, traceback):
+        pass
 
-    def call(
-        self, func: Callable[..., requests.Response], url: str, **params: dict[str, Any]
-    ) -> Optional[requests.Response]:
+    async def call(
+        self,
+        session: aiohttp.ClientSession,
+        method: str,
+        url: str,
+        **params: dict[str, Any],
+    ) -> aiohttp.ClientResponse:
         """
         :param func: (Callable) - function to call
         :param url: (str) - url to call
@@ -38,19 +42,27 @@ class GenericToken:
         :return: (requests.Response) - response from function call
         """
 
-        if not callable(func):
-            Exit(LEVEL_ERROR, "func is not callable")
-
-        Red.debug(f"Calling {func.__name__} with url: {url} and params: {params}")
-
+        Red.debug(f"Calling {method} with url: {url} and params: {params}")
         try:
-            response = func(url, headers=self.headers, **params)
-            response.raise_for_status()
-            return response
-        except requests.exceptions.RequestException as e:
+            match method:
+                case "get":
+                    async with session.get(
+                        url, headers=self.headers, **params
+                    ) as response:
+                        response.raise_for_status()
+                        return response
+                case "post":
+                    async with session.post(
+                        url, headers=self.headers, **params
+                    ) as response:
+                        response.raise_for_status()
+                        return response
+            Exit(LEVEL_ERROR, f"Invalid method {method} provided")
+
+        except Exception as e:
             Exit(
                 LEVEL_ERROR,
-                f"Error calling {func.__name__} with url: {url} and params: {params}: {e}",
+                f"Error calling {method} with url: {url} and params: {params}: {e}",
             )
 
     def set_header(self, key: str, value: str) -> Self:
