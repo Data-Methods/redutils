@@ -2,6 +2,7 @@
 
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Protocol
+from logging import DEBUG, INFO, WARN, ERROR
 
 import sys
 import pyodbc
@@ -93,10 +94,17 @@ class RedReturn:
 
     """
 
+    DEBUG = DEBUG
+    INFO = INFO
+    WARN = WARN
+    ERROR = ERROR
+
     def __init__(self) -> None:
         self.msgs: List[str] = []
         self._cntr: int = 0
         self._crash_file: Path = Path(".crash_detected")
+        self.flush_each_log: bool = False
+        self._log_level = WARN
 
     def _valid_code(self, code: int) -> bool:
         """check if a valid return code"""
@@ -104,27 +112,37 @@ class RedReturn:
             return False
         return True
 
+    def set_log_level(self, level: int) -> None:
+        self._log_level = level
+
     def log(self, msg: str) -> None:
         """logs message"""
         msg = f"({self._cntr}) {msg}"
-        self.msgs.append(msg)
+        if self.flush_each_log:
+            print(msg, flush=True)
+        else:
+            self.msgs.append(msg)
         self._cntr += 1
 
     def debug(self, msg: str) -> None:
         """helper method for debugging info"""
-        self.log(f"DEBUG: {msg}")
+        if self._log_level <= DEBUG:
+            self.log(f"DEBUG: {msg}")
 
     def warn(self, msg: str) -> None:
         """helper method for warn info"""
-        self.log(f"WARNING: {msg}")
+        if self._log_level <= WARN:
+            self.log(f"WARNING: {msg}")
 
     def error(self, msg: str) -> None:
         """helper method for error info"""
-        self.log(f"ERROR: {msg}")
+        if self._log_level <= ERROR:
+            self.log(f"ERROR: {msg}")
 
     def info(self, msg: str) -> None:
         """helper method for info info"""
-        self.log(f"INFO: {msg}")
+        if self._log_level <= INFO:
+            self.log(f"INFO: {msg}")
 
     def rreturn(self, code: int, msg: str = "") -> None:
         """exits software with a return code
@@ -145,8 +163,12 @@ class RedReturn:
 
         # addresses quirk in red: take last element in buffer and insert it into front
         # this will show in red as the final output for the given activity
-        self.msgs.insert(0, self.msgs[-1])
-        self.msgs = self.msgs[:-1]  # cut out last element to remove duplicated value
+
+        if len(self.msgs) > 0:
+            self.msgs.insert(0, self.msgs[-1])
+            self.msgs = self.msgs[
+                :-1
+            ]  # cut out last element to remove duplicated value
 
         msg = "\n".join(self.msgs)
         print(msg)

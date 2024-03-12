@@ -1,9 +1,8 @@
 from typing import List
 
-import polars as pl
 import aiohttp
 
-from ..red import Exit, LEVEL_ERROR
+from ..red import Exit, LEVEL_ERROR, Red
 from ..auth.generic import GenericToken
 from ..api.templates import AsyncIngestionTemplate
 
@@ -42,26 +41,34 @@ class CleargistixBase(GenericToken, AsyncIngestionTemplate):
         return f"{self.server}/{self.uri_prefix}/{uri}"
 
     async def async_request(
-        self, uri, method: str = "get", **method_kwargs
+        self,
+        session: aiohttp.ClientSession,
+        uri,
+        method: str = "get",
+        verbose: bool = False,
+        **method_kwargs,
     ) -> List[dict]:
-        async with aiohttp.ClientSession() as session:
-            # resp = await self.call(
-            #     session, method, f"{self.full_url(uri)}", **method_kwargs
-            # )
+        # async with aiohttp.ClientSession() as session:
 
-            async with session.request(
-                method, f"{self.full_url(uri)}", headers=self.headers, **method_kwargs
-            ) as response:
-                response.raise_for_status()
-                resp = await response.json()
-                if resp.get("IsSuccess") is not True:
-                    Exit(
-                        LEVEL_ERROR,
-                        f"Error calling {uri}\nCode:{resp.get('ErrorCode')}\nMessage:{resp.get('ErrorMessage')}",
-                    )
+        if "timeout" not in method_kwargs:
+            if verbose:
+                Red.debug("Timeout not set, setting to default")
+            method_kwargs["timeout"] = 60
+        if verbose:
+            Red.debug(f"Calling {method} with url: {uri} and params: {method_kwargs}")
+        async with session.request(
+            method, f"{self.full_url(uri)}", headers=self.headers, **method_kwargs
+        ) as response:
+            response.raise_for_status()
+            resp = await response.json()
+            if resp.get("IsSuccess") is not True:
+                Exit(
+                    LEVEL_ERROR,
+                    f"Error calling {uri}\nCode:{resp.get('ErrorCode')}\nMessage:{resp.get('ErrorMessage')}",
+                )
 
-                jdata = resp.get("json")
-                if jdata is None:
-                    Exit(LEVEL_ERROR, f"No data returned from {uri}")
+            jdata = resp.get("json")
+            if jdata is None:
+                Exit(LEVEL_ERROR, f"No data returned from {uri}")
 
-                return jdata
+            return jdata

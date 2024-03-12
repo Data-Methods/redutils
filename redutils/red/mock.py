@@ -25,13 +25,17 @@ class _MockCursor:
     _extended_properties: Dict[str, Dict[str, str]] = json.loads(expfile.read())
     expfile.close()
 
+    @property
+    def params(self):
+        return self._params
+
     def __init__(self) -> None:
         self.logger = Logger(".", "mock_cursor.log").logger("mock_cursor")
         self.mock_returns: List[str] = []
 
     def execute(self, sql_query: str, *params: str) -> None:
         self.mock_returns.clear()
-        for p in _params:
+        for p in params:
             self.mock_returns.append(p)
 
         self.logger.info(f"Mocking Execution: Query:{sql_query}\nParams: {params}")
