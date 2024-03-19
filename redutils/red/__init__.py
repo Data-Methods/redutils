@@ -9,6 +9,10 @@ import pyodbc
 import json
 import pathlib
 import os
+import logging
+
+logging.basicConfig(level=logging.CRITICAL)
+
 
 LEVEL_CRITICAL = -3
 LEVEL_ERROR = -2
