@@ -109,6 +109,14 @@ class RedReturn:
         self._crash_file: Path = Path(".crash_detected")
         self.flush_each_log: bool = False
         self._log_level = WARN
+        self._old_stdout = sys.stdout
+        self._redirect_stdout()
+
+    def _redirect_stdout(self) -> None:
+        sys.stdout = self
+
+    def _restore_stdout(self) -> None:
+        sys.stdout = self._old_stdout
 
     def _valid_code(self, code: int) -> bool:
         """check if a valid return code"""
@@ -162,6 +170,8 @@ class RedReturn:
         """
         if not self._valid_code(code):
             raise ValueError("Invalid error code")
+
+        self._restore_stdout()
 
         print(code)
 
