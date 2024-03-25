@@ -6,7 +6,7 @@ from pathlib import Path
 
 import shutil
 import subprocess
-
+import sys
 
 from ..red import Red, Exit, LEVEL_ERROR
 
@@ -53,9 +53,12 @@ def bcp(
     Red.debug(f"bcp args: {args}")
 
     try:
+        old_stdout = sys.stdout
+        sys.stdout = Red
         result = subprocess.run(
             args, check=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
         )
+        sys.stdout = old_stdout
         return result
 
     except subprocess.CalledProcessError as e:

@@ -116,6 +116,9 @@ class RedReturn:
             return False
         return True
 
+    def write(self, msg: str) -> None:
+        self.log(msg)
+
     def set_log_level(self, level: int) -> None:
         self._log_level = level
 
