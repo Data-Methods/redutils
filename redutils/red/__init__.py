@@ -110,13 +110,16 @@ class RedReturn:
         self.flush_each_log: bool = False
         self._log_level = WARN
         self._old_stdout = sys.stdout
-        self._redirect_stdout()
+        self._old_stderr = sys.stderr
+        # self._redirect_stdout() # this doesn't work correctly... yet
 
     def _redirect_stdout(self) -> None:
         sys.stdout = self
+        sys.stderr = self
 
     def _restore_stdout(self) -> None:
         sys.stdout = self._old_stdout
+        sys.stderr = self._old_stderr
 
     def _valid_code(self, code: int) -> bool:
         """check if a valid return code"""
@@ -131,10 +134,10 @@ class RedReturn:
         self._log_level = level
 
     def log(self, msg: str) -> None:
-        """logs message"""
         msg = f"({self._cntr}) {msg}"
         if self.flush_each_log:
-            print(msg, flush=True)
+            print("FLUSHING ON: " + msg, flush=True)
+            self.msgs.append(msg)
         else:
             self.msgs.append(msg)
         self._cntr += 1
@@ -171,7 +174,7 @@ class RedReturn:
         if not self._valid_code(code):
             raise ValueError("Invalid error code")
 
-        self._restore_stdout()
+        # self._restore_stdout()
 
         print(code)
 
